@@ -304,17 +304,17 @@ return {
       map("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
     end,
   },
-  {
-    "Exafunction/codeium.nvim",
-    lazy = false,
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "hrsh7th/nvim-cmp",
-    },
-    config = function()
-      require("codeium").setup {}
-    end,
-  },
+  -- {
+  --   "Exafunction/codeium.nvim",
+  --   lazy = false,
+  --   dependencies = {
+  --     "nvim-lua/plenary.nvim",
+  --     "hrsh7th/nvim-cmp",
+  --   },
+  --   config = function()
+  --     require("codeium").setup {}
+  --   end,
+  -- },
   {
     "neoclide/coc.nvim",
     branch = "release",
@@ -365,6 +365,28 @@ return {
     -- version = '^4.0.0', -- pin major version, include fixes and features that do not have breaking changes
     config = function()
       require("kitty-scrollback").setup()
+    end,
+  },
+  {
+    "zbirenbaum/copilot.lua",
+    cmd = "Copilot",
+    event = "InsertEnter",
+    lazy = false,
+    config = function()
+      require("copilot").setup {
+        suggestion = { enabled = false },
+        panel = { enabled = false },
+        filetypes = {
+          ["*"] = true,
+        },
+      }
+    end,
+  },
+  {
+    "zbirenbaum/copilot-cmp",
+    lazy = false,
+    config = function()
+      require("copilot_cmp").setup()
     end,
   },
 }
