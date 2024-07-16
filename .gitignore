@@ -3,3 +3,4 @@ lua/nvconfig.lua
 lazy-lock.json
 /nvchad
 .DS_Store
+.idea/
