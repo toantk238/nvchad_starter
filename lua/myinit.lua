@@ -58,7 +58,11 @@ vim.opt.shell = "zsh"
 
 vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,localoptions"
 vim.g.db_ui_auto_execute_table_helpers = 1
-vim.g.db_ui_default_query = 'select * from "{table}" limit 10'
+vim.g.db_ui_table_helpers = {
+  mysql = {
+    List = 'select * from `{table}` order by created_at desc limit 10',
+  },
+}
 
 local all_dbs = os.getenv "DBS_URL"
 if all_dbs and all_dbs ~= "" then
