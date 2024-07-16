@@ -7,3 +7,10 @@ autocmd("FileType", {
     require("cmp").setup.buffer { sources = { { name = "vim-dadbod-completion" } } }
   end,
 })
+
+autocmd('FileType', {
+  pattern = { 'dbout' },
+  callback = function()
+    vim.opt.foldenable = false
+  end,
+})
