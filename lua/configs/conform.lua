@@ -80,3 +80,4 @@ for formatter, config in pairs(M) do
 end
 
 require("conform").setup(options)
+return options
