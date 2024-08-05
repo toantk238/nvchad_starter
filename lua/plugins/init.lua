@@ -89,7 +89,7 @@ return {
   {
     "chaoren/vim-wordmotion",
     lazy = true,
-    keys = "ci<leader>w",
+    keys = { "ci<leader>w", "ca<leader>w", "di<leader>w", "da<leader>w", "<leader>w" },
   },
 
   {

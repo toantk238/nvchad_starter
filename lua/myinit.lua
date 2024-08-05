@@ -23,6 +23,7 @@ local pattern_table = {
   ["direnv"] = { ".*%.envrc%.*" },
   ["dockerfile"] = { "Dockerfile.*" },
   ["yaml"] = { ".*%.yml%..*" },
+  ["python"] = { "gittool" },
 }
 
 local function table_map_by_value(data)
@@ -60,7 +61,7 @@ vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,
 vim.g.db_ui_auto_execute_table_helpers = 1
 vim.g.db_ui_table_helpers = {
   mysql = {
-    List = 'select * from `{table}` order by created_at desc limit 10',
+    List = "select * from `{table}` order by created_at desc limit 10",
   },
 }
 
