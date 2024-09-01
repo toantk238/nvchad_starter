@@ -14,17 +14,10 @@ local M = {
     config = function()
       require "configs.lspconfig"
     end,
-    ft = { "lua", "python", "javascript", "typescript", "rust", "go" },
+    ft = { "lua", "python", "javascript", "typescript", "rust", "go", "swift" },
   },
 
   -- These are some examples, uncomment them if you want to see them work!
-  {
-    "neovim/nvim-lspconfig",
-    config = function()
-      require "configs.lspconfig"
-    end,
-  },
-
   -- {
   -- 	"nvim-treesitter/nvim-treesitter",
   -- 	opts = {

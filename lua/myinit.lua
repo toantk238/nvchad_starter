@@ -14,7 +14,6 @@ end
 
 local filename_table = {
   ["ruby"] = { "Appfile", "Podfile", "Pluginfile", "Matchfile" },
-  ["bash"] = { "env.sample" },
 }
 
 local pattern_table = {
@@ -24,6 +23,7 @@ local pattern_table = {
   ["dockerfile"] = { "Dockerfile.*" },
   ["yaml"] = { ".*%.yml%..*" },
   ["python"] = { "gittool" },
+  ["bash"] = { "env.*" },
 }
 
 local function table_map_by_value(data)
