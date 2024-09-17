@@ -68,11 +68,16 @@ local M = {
 if vim.fn.executable "npm-groovy-lint" then
   M["groovy_lint"] = {
 
-    command = vim.fn.expand "$HOME/.local/bin/npm-groovy-lint",
+    -- command = vim.fn.expand "$HOME/.local/bin/npm-groovy-lint",
+    command = "npm-groovy-lint",
     args = { "--format", "$FILENAME" },
     stdin = false,
     exit_codes = { 0, 1 },
   }
+end
+
+if vim.fn.executable "swiftlint" then
+  options.formatters_by_ft.swift = { "swiftlint" }
 end
 
 for formatter, config in pairs(M) do
