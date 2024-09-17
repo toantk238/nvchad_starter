@@ -176,7 +176,13 @@ local possible_lsp = {
     lspconfig.autotools_ls.setup {
       on_init = nvlsp.on_init,
       on_attach = nvlsp.on_attach,
-      capabilities = nvlsp.capabilities,
+      capabilities = vim.tbl_deep_extend("keep", nvlsp.capabilities, {
+        workspace = {
+          didChangeWatchedFiles = {
+            dynamicRegistration = true,
+          },
+        },
+      }),
     }
   end,
 }
@@ -216,4 +222,3 @@ end
 --		},
 --	})
 --end
-
