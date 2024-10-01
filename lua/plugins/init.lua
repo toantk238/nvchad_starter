@@ -113,7 +113,7 @@ local M = {
       "sindrets/diffview.nvim", -- optional
     },
     config = true,
-    lazy = false,
+    lazy = true,
   },
   {
     "junegunn/fzf.vim",
