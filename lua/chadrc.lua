@@ -5,12 +5,13 @@
 ---@type ChadrcConfig
 local M = {}
 
-M.ui = {
-  theme = "monekai",
-  -- hl_override = {
-  -- 	Comment = { italic = true },
-  -- 	["@comment"] = { italic = true },
-  -- },
+M.base46 = {
+	theme = "monekai",
+
+	-- hl_override = {
+	-- 	Comment = { italic = true },
+	-- 	["@comment"] = { italic = true },
+	-- },
 }
 
 M.mason = {
