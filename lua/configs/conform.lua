@@ -52,7 +52,7 @@ local M = {
     prepend_args = { "--max-line-length", "140" },
   },
   ["deno_fmt"] = {
-    args = function(ctx)
+    args = function(self, ctx)
       return {
         "fmt",
         "-",
