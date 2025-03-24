@@ -1,4 +1,5 @@
 require "nvchad.mappings"
+require "mymappings"
 
 -- add yours here
 
