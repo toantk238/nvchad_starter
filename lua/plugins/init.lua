@@ -58,7 +58,7 @@ local M = {
         -- Load luvit types when the `vim.uv` word is found
         { path = "${3rd}/luv/library", words = { "vim%.uv" } },
       },
-    }
+    },
   },
   { -- optional cmp completion source for require statements and module annotations
     "hrsh7th/nvim-cmp",
@@ -531,6 +531,28 @@ local optionalPlugins = {
     },
     willLoad = function()
       return os.getenv "ENABLE_AVANTE" == "true"
+    end,
+  },
+  {
+    "Ramilito/kubectl.nvim",
+    opts = {
+      logs = {
+        prefix = false,
+        timestamps = false,
+        since = "5m",
+      },
+    },
+    cmd = { "Kubectl", "Kubectx", "Kubens" },
+    keys = {
+      { "<leader>k", '<cmd>lua require("kubectl").toggle()<cr>' },
+      { "<C-k>", "<Plug>(kubectl.kill)", ft = "k8s_*" },
+      { "7", "<Plug>(kubectl.view_nodes)", ft = "k8s_*" },
+      { "8", "<Plug>(kubectl.view_overview)", ft = "k8s_*" },
+      { "<C-t>", "<Plug>(kubectl.view_top)", ft = "k8s_*" },
+    },
+    lazy = true,
+    willLoad = function()
+      return vim.fn.executable "kubectl" == 1
     end,
   },
 }
