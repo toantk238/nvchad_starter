@@ -1,8 +1,10 @@
 -- load defaults i.e lua_lsp
 require("nvchad.configs.lspconfig").defaults()
+local util = require "lspconfig.util"
 local M = require "nvchad.configs.lspconfig"
 
 local lspconfig = require "lspconfig"
+local configs = require "lspconfig.configs"
 
 -- EXAMPLE
 local servers = {
@@ -269,4 +271,31 @@ lspconfig.lua_ls.setup {
       preloadFileSize = 10000,
     },
   },
+}
+
+local lsp_path = vim.fn.stdpath "config" .. "/lsp"
+local python_version = vim.trim(io.open(lsp_path .. "/.python-version", "r"):read "*a")
+local python_path = vim.fn.expand "$HOME/.pyenv/versions/" .. python_version .. "/bin/python"
+local root_files = {
+  "Fastfile",
+  "Gemfile",
+  ".git",
+}
+
+if not configs.fastlane_ls then
+  configs.fastlane_ls = {
+    default_config = {
+      cmd = { python_path, lsp_path .. "/fastlane_ls.py" },
+      filetypes = { "ruby" },
+      root_dir = function(fname)
+        return util.root_pattern(unpack(root_files))(fname)
+      end,
+    },
+  }
+end
+
+lspconfig.fastlane_ls.setup {
+  on_attach = nvlsp.on_attach,
+  capabilities = nvlsp.capabilities,
+  on_init = nvlsp.on_init,
 }
