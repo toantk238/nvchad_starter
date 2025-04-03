@@ -457,7 +457,7 @@ local optionalPlugins = {
         hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif" }, -- render image files as images when opened
       }
     end,
-    willLoad = function()
+    enabled = function()
       local hasLuaRocks = vim.fn.isdirectory(vim.fn.expand "$HOME/.luarocks")
       return hasLuaRocks == 1
     end,
@@ -552,7 +552,7 @@ local avante = {
       ft = { "markdown", "Avante" },
     },
   },
-  willLoad = function()
+  enabled = function()
     return os.getenv "ENABLE_AVANTE" == "true"
   end,
 }
@@ -563,13 +563,10 @@ if avante_dir then
 else
   avante.url = "yetone/avante.nvim"
 end
+table.insert(M, avante)
 
 for _, plugin in ipairs(optionalPlugins) do
-  if plugin.willLoad() then
-    table.insert(M, plugin)
-  end
+  table.insert(M, plugin)
 end
-
-table.insert(M, avante)
 
 return M
