@@ -5,3 +5,4 @@ lazy-lock.json
 .DS_Store
 .idea/
 .python-version
+__pycache__

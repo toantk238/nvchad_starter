@@ -1,37 +1,59 @@
-from lsprotocol.types import (
-    Hover,
-    HoverParams,
-    InitializeParams,
-    InitializeResult,
-    MarkupContent,
-    MarkupKind,
-    TextDocumentSyncKind,
-)
+from datetime import datetime
+
+from lsprotocol import types
 from pygls.server import LanguageServer
 
+from utils.log import logger
 
-class CustomLanguageServer(LanguageServer):
-    CMD_HELLO_WORLD = 'helloWorld'
-
-    def __init__(self):
-        super().__init__('custom_lsp', 'v0.1')
-
-    async def initialize(self, params: InitializeParams) -> InitializeResult:
-        capabilities = {
-            'textDocumentSync': TextDocumentSyncKind.Incremental,
-            'hoverProvider': True,
-        }
-        return InitializeResult(capabilities=capabilities)
+DATE_FORMATS = [
+    "%H:%M:%S",
+    "%d/%m/%y",
+    "%Y-%m-%d",
+    "%Y-%m-%dT%H:%M:%S",
+]
+server = LanguageServer("hover-server", "v1")
 
 
-server = CustomLanguageServer()
+@server.feature(types.TEXT_DOCUMENT_HOVER)
+async def hover(ls: LanguageServer, params: types.HoverParams) -> types.Hover:
+    pos = params.position
+    document_uri = params.text_document.uri
+    document = ls.workspace.get_text_document(document_uri)
 
+    try:
+        line = document.lines[pos.line]
+    except IndexError:
+        return None
 
-@server.feature('textDocument/hover')
-async def hover(self, params: HoverParams) -> Hover:
-    # Provide hover information
-    content = MarkupContent(kind=MarkupKind.PlainText, value="Hello from Custom LSP!")
-    return Hover(contents=content)
+    for fmt in DATE_FORMATS:
+        try:
+            value = datetime.strptime(line.strip(), fmt)
+            break
+        except ValueError:
+            pass
+
+    else:
+        # No valid datetime found.
+        return None
+
+    hover_content = [
+        f"# {value.strftime('%a %d %b %Y')}",
+        "",
+        "| Format | Value |",
+        "|:-|-:|",
+        *[f"| `{fmt}` | {value.strftime(fmt)} |" for fmt in DATE_FORMATS],
+    ]
+
+    return types.Hover(
+        contents=types.MarkupContent(
+            kind=types.MarkupKind.Markdown,
+            value="\n".join(hover_content),
+        ),
+        range=types.Range(
+            start=types.Position(line=pos.line, character=0),
+            end=types.Position(line=pos.line + 1, character=0),
+        ),
+    )
 
 
 def main():
