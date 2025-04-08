@@ -1,4 +1,3 @@
-from datetime import datetime
 import os
 import subprocess
 
@@ -24,6 +23,9 @@ server = LanguageServer("hover-server", "v1")
 async def hover(ls: LanguageServer, params: types.HoverParams) -> types.Hover:
     pos = params.position
     document_uri = params.text_document.uri
+    if not document_uri.endswith("Fastfile"):
+        return None
+
     document = ls.workspace.get_text_document(document_uri)
     logger.info(f"pos = {pos}")
     word = ""
