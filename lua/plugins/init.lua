@@ -1,5 +1,7 @@
 local map = vim.keymap.set
 
+local notInsideKittyScrollback = vim.env.KITTY_SCROLLBACK_NVIM ~= "true"
+
 local M = {
   {
     "stevearc/conform.nvim",
@@ -114,10 +116,12 @@ local M = {
         log_level = "error",
         auto_session_suppress_dirs = { "~/", "~/Downloads", "/" },
         post_restore_cmds = { "NvimTreeToggle" },
+        auto_session_enabled = notInsideKittyScrollback,
       }
       require("base46").load_all_highlights()
     end,
     lazy = false,
+    cond = notInsideKittyScrollback,
     -- cmd = "SessionRestore"
   },
   {
@@ -458,9 +462,9 @@ local optionalPlugins = {
         hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif" }, -- render image files as images when opened
       }
     end,
-    enabled = function()
+    cond = function()
       local hasLuaRocks = vim.fn.isdirectory(vim.fn.expand "$HOME/.luarocks")
-      return hasLuaRocks == 1
+      return hasLuaRocks and notInsideKittyScrollback
     end,
   },
   {
@@ -481,7 +485,7 @@ local optionalPlugins = {
       { "<C-t>", "<Plug>(kubectl.view_top)", ft = "k8s_*" },
     },
     lazy = true,
-    willLoad = function()
+    cond = function()
       return vim.fn.executable "kubectl" == 1
     end,
   },
@@ -557,7 +561,7 @@ local avante = {
       ft = { "markdown", "Avante" },
     },
   },
-  enabled = function()
+  cond = function()
     return os.getenv "ENABLE_AVANTE" == "true"
   end,
 }
