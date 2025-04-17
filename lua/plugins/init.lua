@@ -283,6 +283,7 @@ local M = {
   {
     "HiPhish/rainbow-delimiters.nvim",
     lazy = false,
+    branch = "master",
   },
   {
     "windwp/nvim-spectre",
@@ -483,6 +484,10 @@ local optionalPlugins = {
     willLoad = function()
       return vim.fn.executable "kubectl" == 1
     end,
+  },
+  {
+    "luarocks/hererocks",
+    lazy = true,
   },
 }
 
