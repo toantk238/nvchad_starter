@@ -570,7 +570,7 @@ local avante_dir = os.getenv "AVANTE_DIR"
 if avante_dir then
   avante.dir = avante_dir
 else
-  avante.url = "yetone/avante.nvim"
+  avante[1] = "yetone/avante.nvim"
 end
 table.insert(M, avante)
 
