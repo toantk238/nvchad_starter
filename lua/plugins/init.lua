@@ -537,6 +537,13 @@ local avante = {
   version = false, -- set this if you want to always pull the latest change
   opts = {
     provider = "copilot",
+    providers = {
+      copilot = {
+        model = "claude-3.5-sonnet",
+      },
+    },
+    -- provider = "copilot", -- use copilot as the main provider
+    -- provider = "code
     -- provider = "openai",
     auto_suggestions_provider = "copilot",
     behaviour = {
