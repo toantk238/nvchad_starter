@@ -422,6 +422,26 @@ local optionalPlugins = {
     "3rd/image.nvim",
     event = "VeryLazy",
     tag = "v1.3.0",
+    keys = {
+      {
+        "<leader>a+",
+        function()
+          local tree_ext = require "avante.extensions.nvim_tree"
+          tree_ext.add_file()
+        end,
+        desc = "Select file in NvimTree",
+        ft = "NvimTree",
+      },
+      {
+        "<leader>a-",
+        function()
+          local tree_ext = require "avante.extensions.nvim_tree"
+          tree_ext.remove_file()
+        end,
+        desc = "Deselect file in NvimTree",
+        ft = "NvimTree",
+      },
+    },
     otps = {
       backend = "kitty",
       kitty_method = "normal",
@@ -450,6 +470,9 @@ local optionalPlugins = {
         css = {
           enabled = false,
         },
+      },
+      selector = {
+        exclude_auto_select = { "NvimTree" },
       },
       max_width = nil,
       max_height = nil,
@@ -491,6 +514,19 @@ local optionalPlugins = {
     lazy = true,
     cond = function()
       return vim.fn.executable "kubectl" == 1
+    end,
+  },
+  {
+    "ravitemer/mcphub.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+    build = "bundled_build.lua", -- Bundles `mcp-hub` binary along with the neovim plugin
+    opts = {
+      use_bundled_binary = true,
+    },
+    config = function(_, opts)
+      require("mcphub").setup(opts)
     end,
   },
 }
