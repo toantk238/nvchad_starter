@@ -18,6 +18,7 @@ local M = {
     },
     config = function()
       require "configs.lspconfig"
+      require "configs.mylspconfig"
     end,
     ft = {
       "lua",
@@ -38,6 +39,9 @@ local M = {
   },
 
   -- These are some examples, uncomment them if you want to see them work!
+  -- test new blink
+  -- { import = "nvchad.blink.lazyspec" },
+
   -- {
   -- 	"nvim-treesitter/nvim-treesitter",
   -- 	opts = {
