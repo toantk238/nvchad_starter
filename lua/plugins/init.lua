@@ -379,46 +379,46 @@ local M = {
       require("kitty-scrollback").setup()
     end,
   },
-  {
-    "zbirenbaum/copilot.lua",
-    cmd = "Copilot",
-    event = "InsertEnter",
-    lazy = false,
-    config = function()
-      require("copilot").setup {
-        suggestion = { enabled = false },
-        panel = { enabled = false },
-        filetypes = {
-          ["*"] = true,
-        },
-      }
-    end,
-  },
-  {
-    "zbirenbaum/copilot-cmp",
-    lazy = false,
-    config = function()
-      local cmp = require "copilot_cmp"
-      local has_words_before = function()
-        if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then
-          return false
-        end
-        local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-        return col ~= 0 and vim.api.nvim_buf_get_text(0, line - 1, 0, line - 1, col, {})[1]:match "^%s*$" == nil
-      end
-      cmp.setup {
-        mapping = {
-          ["<Tab>"] = vim.schedule_wrap(function(fallback)
-            if cmp.visible() and has_words_before() then
-              cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
-            else
-              fallback()
-            end
-          end),
-        },
-      }
-    end,
-  },
+  -- {
+  --   "zbirenbaum/copilot.lua",
+  --   cmd = "Copilot",
+  --   event = "InsertEnter",
+  --   lazy = false,
+  --   config = function()
+  --     require("copilot").setup {
+  --       suggestion = { enabled = false },
+  --       panel = { enabled = false },
+  --       filetypes = {
+  --         ["*"] = true,
+  --       },
+  --     }
+  --   end,
+  -- },
+  -- {
+  --   "zbirenbaum/copilot-cmp",
+  --   lazy = false,
+  --   config = function()
+  --     local cmp = require "copilot_cmp"
+  --     local has_words_before = function()
+  --       if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then
+  --         return false
+  --       end
+  --       local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+  --       return col ~= 0 and vim.api.nvim_buf_get_text(0, line - 1, 0, line - 1, col, {})[1]:match "^%s*$" == nil
+  --     end
+  --     cmp.setup {
+  --       mapping = {
+  --         ["<Tab>"] = vim.schedule_wrap(function(fallback)
+  --           if cmp.visible() and has_words_before() then
+  --             cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
+  --           else
+  --             fallback()
+  --           end
+  --         end),
+  --       },
+  --     }
+  --   end,
+  -- },
 }
 
 local optionalPlugins = {
@@ -426,26 +426,6 @@ local optionalPlugins = {
     "3rd/image.nvim",
     event = "VeryLazy",
     tag = "v1.3.0",
-    keys = {
-      {
-        "<leader>a+",
-        function()
-          local tree_ext = require "avante.extensions.nvim_tree"
-          tree_ext.add_file()
-        end,
-        desc = "Select file in NvimTree",
-        ft = "NvimTree",
-      },
-      {
-        "<leader>a-",
-        function()
-          local tree_ext = require "avante.extensions.nvim_tree"
-          tree_ext.remove_file()
-        end,
-        desc = "Deselect file in NvimTree",
-        ft = "NvimTree",
-      },
-    },
     otps = {
       backend = "kitty",
       kitty_method = "normal",
@@ -535,91 +515,111 @@ local optionalPlugins = {
   },
 }
 
-local avante = {
-  event = "VeryLazy",
-  lazy = true,
-  version = false, -- set this if you want to always pull the latest change
-  opts = {
-    provider = "copilot",
-    providers = {
-      copilot = {
-        model = "claude-3.5-sonnet",
-      },
-    },
-    -- provider = "copilot", -- use copilot as the main provider
-    -- provider = "code
-    -- provider = "openai",
-    auto_suggestions_provider = "copilot",
-    behaviour = {
-      auto_suggestions = false, -- Experimental stage
-      auto_set_highlight_group = true,
-      auto_set_keymaps = true,
-      auto_apply_diff_after_generation = false,
-      support_paste_from_clipboard = true,
-    },
-    suggestion = {
-      debounce = 1200,
-      throttle = 600,
-    },
-    web_search_engine = {
-      provider = "tavily", -- tavily, serpapi, searchapi, google or kagi
-    },
-    -- add any opts here
-  },
-  build = "make",
-  -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
-  dependencies = {
-    "stevearc/dressing.nvim",
-    "nvim-lua/plenary.nvim",
-    "MunifTanjim/nui.nvim",
-    --- The below dependencies are optional,
-    "nvim-telescope/telescope.nvim", -- for file_selector provider telescope
-    "hrsh7th/nvim-cmp", -- autocompletion for avante commands and mentions
-    -- "ibhagwan/fzf-lua", -- for file_selector provider fzf
-    "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-    "zbirenbaum/copilot.lua", -- for providers='copilot'
-    {
-      -- support for image pasting
-      "HakonHarnes/img-clip.nvim",
-      event = "VeryLazy",
-      opts = {
-        -- recommended settings
-        default = {
-          embed_image_as_base64 = false,
-          prompt_for_file_name = false,
-          drag_and_drop = {
-            insert_mode = true,
-          },
-          -- required for Windows users
-          use_absolute_path = true,
-        },
-      },
-      keys = {
-        -- suggested keymap
-        { "<leader>p", "<cmd>PasteImage<cr>", desc = "Paste image from system clipboard" },
-      },
-    },
-    {
-      -- Make sure to set this up properly if you have lazy=true
-      "MeanderingProgrammer/render-markdown.nvim",
-      opts = {
-        file_types = { "markdown", "Avante" },
-      },
-      ft = { "markdown", "Avante" },
-    },
-  },
-  cond = function()
-    return os.getenv "ENABLE_AVANTE" == "true"
-  end,
-}
-
-local avante_dir = os.getenv "AVANTE_DIR"
-if avante_dir then
-  avante.dir = avante_dir
-else
-  avante[1] = "yetone/avante.nvim"
-end
-table.insert(M, avante)
+-- local avante = {
+--   event = "VeryLazy",
+--   lazy = true,
+--   version = false, -- set this if you want to always pull the latest change
+--   keys = {
+--     {
+--       "<leader>a+",
+--       function()
+--         local tree_ext = require "avante.extensions.nvim_tree"
+--         tree_ext.add_file()
+--       end,
+--       desc = "Select file in NvimTree",
+--       ft = "NvimTree",
+--     },
+--     {
+--       "<leader>a-",
+--       function()
+--         local tree_ext = require "avante.extensions.nvim_tree"
+--         tree_ext.remove_file()
+--       end,
+--       desc = "Deselect file in NvimTree",
+--       ft = "NvimTree",
+--     },
+--   },
+--   opts = {
+--     provider = "copilot",
+--     providers = {
+--       copilot = {
+--         model = "claude-3.5-sonnet",
+--       },
+--     },
+--     -- provider = "copilot", -- use copilot as the main provider
+--     -- provider = "code
+--     -- provider = "openai",
+--     auto_suggestions_provider = "copilot",
+--     behaviour = {
+--       auto_suggestions = false, -- Experimental stage
+--       auto_set_highlight_group = true,
+--       auto_set_keymaps = true,
+--       auto_apply_diff_after_generation = false,
+--       support_paste_from_clipboard = true,
+--     },
+--     suggestion = {
+--       debounce = 1200,
+--       throttle = 600,
+--     },
+--     web_search_engine = {
+--       provider = "tavily", -- tavily, serpapi, searchapi, google or kagi
+--     },
+--     -- add any opts here
+--   },
+--   build = "make",
+--   -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
+--   dependencies = {
+--     "stevearc/dressing.nvim",
+--     "nvim-lua/plenary.nvim",
+--     "MunifTanjim/nui.nvim",
+--     --- The below dependencies are optional,
+--     "nvim-telescope/telescope.nvim", -- for file_selector provider telescope
+--     "hrsh7th/nvim-cmp", -- autocompletion for avante commands and mentions
+--     -- "ibhagwan/fzf-lua", -- for file_selector provider fzf
+--     "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
+--     "zbirenbaum/copilot.lua", -- for providers='copilot'
+--     {
+--       -- support for image pasting
+--       "HakonHarnes/img-clip.nvim",
+--       event = "VeryLazy",
+--       opts = {
+--         -- recommended settings
+--         default = {
+--           embed_image_as_base64 = false,
+--           prompt_for_file_name = false,
+--           drag_and_drop = {
+--             insert_mode = true,
+--           },
+--           -- required for Windows users
+--           use_absolute_path = true,
+--         },
+--       },
+--       keys = {
+--         -- suggested keymap
+--         { "<leader>p", "<cmd>PasteImage<cr>", desc = "Paste image from system clipboard" },
+--       },
+--     },
+--     {
+--       -- Make sure to set this up properly if you have lazy=true
+--       "MeanderingProgrammer/render-markdown.nvim",
+--       opts = {
+--         file_types = { "markdown", "Avante" },
+--       },
+--       ft = { "markdown", "Avante" },
+--     },
+--   },
+--   cond = function()
+--     return os.getenv "ENABLE_AVANTE" == "true"
+--   end,
+-- }
+--
+-- local avante_dir = os.getenv "AVANTE_DIR"
+-- if avante_dir then
+--   avante.dir = avante_dir
+-- else
+--   avante[1] = "yetone/avante.nvim"
+-- end
+-- table.insert(M, avante)
 
 for _, plugin in ipairs(optionalPlugins) do
   table.insert(M, plugin)
