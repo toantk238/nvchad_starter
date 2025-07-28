@@ -246,6 +246,7 @@ lspconfig.lua_ls.setup {
       diagnostics = {
         globals = { "vim" },
       },
+      runtime = { version = "LuaJIT" },
       workspace = {
         library = {
           vim.fn.expand "$VIMRUNTIME/lua",
@@ -295,4 +296,4 @@ lspconfig.fastlane_ls.setup {
   capabilities = nvlsp.capabilities,
   on_init = nvlsp.on_init,
 }
--- read :h vim.lsp.config for changing options of lsp servers 
+-- read :h vim.lsp.config for changing options of lsp servers
