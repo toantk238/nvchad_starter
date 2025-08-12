@@ -480,6 +480,8 @@ local optionalPlugins = {
   },
   {
     "Ramilito/kubectl.nvim",
+    version = "2.*",
+    dependencies = "saghen/blink.download",
     opts = {
       logs = {
         prefix = false,
