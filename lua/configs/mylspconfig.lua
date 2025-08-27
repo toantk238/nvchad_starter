@@ -271,7 +271,14 @@ lspconfig.lua_ls.setup {
 }
 
 local lsp_path = vim.fn.stdpath "config" .. "/lsp"
-local python_version = vim.trim(io.open(lsp_path .. "/.python-version", "r"):read "*a")
+local python_version_file = lsp_path .. "/.python-version"
+-- Verify the python-version file exists before proceeding
+if vim.fn.filereadable(python_version_file) == 0 then
+  vim.notify("Python version file not found: " .. python_version_file, vim.log.levels.WARN)
+  return
+end
+
+local python_version = vim.trim(io.open(python_version_file, "r"):read "*a")
 local python_path = vim.fn.expand "$HOME/.pyenv/versions/" .. python_version .. "/bin/python"
 local root_files = {
   "Fastfile",
