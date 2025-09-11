@@ -83,12 +83,15 @@ if vim.fn.executable "npm-groovy-lint" then
 end
 
 M["format_ps1"] = {
-  command = vim.fn.stdpath "config" .. "\\formatters\\format-ps1.ps1",
+  command = "pwsh",
   args = {
+    "-NoProfile",
+    "-File",
+    vim.fn.stdpath("config") .. "\\formatters\\format-ps1.ps1",
     "$FILENAME",
   },
   stdin = false,
-  exit_codes = { 0, 1 },
+  require_cwd = false,
 }
 
 if vim.fn.executable "swiftlint" then

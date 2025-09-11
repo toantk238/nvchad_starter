@@ -3,7 +3,7 @@
 param([string]$path)
 
 function format-ps1 {
-    Param([string]$path)
+    param([string]$path)
     
     $fullPath = (Resolve-Path -Path $path -ErrorAction Stop).Path
     
@@ -11,7 +11,7 @@ function format-ps1 {
         Import-Module PSScriptAnalyzer -ErrorAction SilentlyContinue
         $output = Invoke-Formatter -ScriptDefinition ([IO.File]::ReadAllText($fullPath))
 
-        [Console]::Write($output)
+        # [Console]::Write($output)
         Set-Content $path $output -NoNewline;
     }
 }
