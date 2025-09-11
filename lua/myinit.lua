@@ -73,7 +73,7 @@ vim.g.loaded_python3_provider = nil
 vim.g.python3_host_prog = "~/.pyenv/shims/python"
 vim.g.python_host_prog = "~/.pyenv/versions/2.7.18/bin/python"
 vim.g.coc_global_extensions = { "coc-flutter" }
-vim.opt.shell = "zsh"
+vim.opt.shell = "pwsh"
 
 vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,localoptions"
 vim.g.db_ui_auto_execute_table_helpers = 1

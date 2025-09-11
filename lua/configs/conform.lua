@@ -23,6 +23,8 @@ local options = {
     markdown = { "deno_fmt" },
     groovy = { "groovy_lint" },
     tex = { "latexindent" },
+    powershell = { "format_ps1" },
+    ps1 = { "format_ps1" },
   },
 }
 
@@ -79,6 +81,15 @@ if vim.fn.executable "npm-groovy-lint" then
     exit_codes = { 0, 1 },
   }
 end
+
+M["format_ps1"] = {
+  command = vim.fn.stdpath "config" .. "\\formatters\\format-ps1.ps1",
+  args = {
+    "$FILENAME",
+  },
+  stdin = false,
+  exit_codes = { 0, 1 },
+}
 
 if vim.fn.executable "swiftlint" then
   options.formatters_by_ft.swift = { "swiftlint" }

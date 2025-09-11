@@ -274,7 +274,7 @@ local lsp_path = vim.fn.stdpath "config" .. "/lsp"
 local python_version_file = lsp_path .. "/.python-version"
 -- Verify the python-version file exists before proceeding
 if vim.fn.filereadable(python_version_file) == 0 then
-  vim.notify("Python version file not found: " .. python_version_file, vim.log.levels.WARN)
+  -- vim.notify("Python version file not found: " .. python_version_file, vim.log.levels.WARN)
   return
 end
 
