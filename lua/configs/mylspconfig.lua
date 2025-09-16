@@ -107,7 +107,26 @@ require("typescript-tools").setup {
   },
 }
 
-lspconfig.pyright.setup {
+local function organize_imports()
+  local params = {
+    command = 'pyright.organizeimports',
+    arguments = { vim.uri_from_bufnr(0) },
+  }
+  local clients = vim.lsp.get_clients {
+    bufnr = vim.api.nvim_get_current_buf(),
+    name = 'pyright',
+  }
+  for _, client in ipairs(clients) do
+    client.request('workspace/executeCommand', params, nil, 0)
+  end
+end-- Register the command
+
+vim.api.nvim_create_user_command('PyrightOrganizeImports', organize_imports, {
+  desc = 'Organize imports using Pyright'
+})
+
+vim.lsp.enable "pyright"
+vim.lsp.config("pyright", {
   on_attach = nvlsp.on_attach,
   capabilities = nvlsp.capabilities,
   on_init = nvlsp.on_init,
@@ -115,11 +134,21 @@ lspconfig.pyright.setup {
     python = {
       analysis = {
         typeCheckingMode = "off",
+        autoSearchPaths = true,
         useLibraryCodeForTypes = true,
+        diagnosticMode = "openFilesOnly",
+        disableOrganizeImports = false,
       },
     },
   },
-}
+})
+
+-- lspconfig.pyright.setup {
+--   settings = {
+--       },
+--     },
+--   },
+-- }
 
 lspconfig.solargraph.setup {
   on_attach = nvlsp.on_attach,
