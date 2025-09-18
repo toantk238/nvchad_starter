@@ -109,20 +109,20 @@ require("typescript-tools").setup {
 
 local function organize_imports()
   local params = {
-    command = 'pyright.organizeimports',
+    command = "pyright.organizeimports",
     arguments = { vim.uri_from_bufnr(0) },
   }
   local clients = vim.lsp.get_clients {
     bufnr = vim.api.nvim_get_current_buf(),
-    name = 'pyright',
+    name = "pyright",
   }
   for _, client in ipairs(clients) do
-    client.request('workspace/executeCommand', params, nil, 0)
+    client.request("workspace/executeCommand", params, nil, 0)
   end
-end-- Register the command
+end -- Register the command
 
-vim.api.nvim_create_user_command('PyrightOrganizeImports', organize_imports, {
-  desc = 'Organize imports using Pyright'
+vim.api.nvim_create_user_command("PyrightOrganizeImports", organize_imports, {
+  desc = "Organize imports using Pyright",
 })
 
 vim.lsp.enable "pyright"
@@ -131,13 +131,16 @@ vim.lsp.config("pyright", {
   capabilities = nvlsp.capabilities,
   on_init = nvlsp.on_init,
   settings = {
+    pyright = {
+      disableTaggedHints = true,
+      disableOrganizeImports = false,
+    },
     python = {
       analysis = {
         typeCheckingMode = "off",
         autoSearchPaths = true,
         useLibraryCodeForTypes = true,
         diagnosticMode = "openFilesOnly",
-        disableOrganizeImports = false,
       },
     },
   },

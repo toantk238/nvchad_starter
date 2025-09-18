@@ -166,6 +166,7 @@ local M = {
     },
     config = true,
     lazy = true,
+    cmd = 'Neogit',
   },
   {
     "junegunn/fzf.vim",
