@@ -310,6 +310,7 @@ vimLsp.enable "lua_ls"
 
 local lsp_path = vim.fn.stdpath "config" .. "/lsp"
 local python_version_file = lsp_path .. "/.python-version"
+
 -- Verify the python-version file exists before proceeding
 if vim.fn.filereadable(python_version_file) == 0 then
   vim.notify("Python version file not found: " .. python_version_file, vim.log.levels.WARN)
@@ -324,31 +325,14 @@ local root_files = {
   ".git",
 }
 
--- if not configs.fastlane_ls then
---   configs.fastlane_ls = {
---     default_config = {
---       cmd = { python_path, lsp_path .. "/fastlane_ls.py" },
---       filetypes = { "ruby" },
---       root_dir = function(fname)
---         return util.root_pattern(unpack(root_files))(fname)
---       end,
---     },
---   }
--- end
-
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "ruby" },
-  callback = function()
-    vimLsp.config("fastlane_ls", {
-      name = "fastlane_ls",
-      cmd = { python_path, lsp_path .. "/fastlane_ls.py" },
-      root_dir = vim.fs.root(0, root_files),
-      on_attach = nvlsp.on_attach,
-      capabilities = nvlsp.capabilities,
-      on_init = nvlsp.on_init,
-    })
-    vimLsp.enable "fastlane_ls"
-  end,
+vimLsp.config("fastlane_ls", {
+  name = "fastlane_ls",
+  cmd = { python_path, lsp_path .. "/fastlane_ls.py" },
+  root_dir = vim.fs.root(0, root_files),
+  on_attach = nvlsp.on_attach,
+  capabilities = nvlsp.capabilities,
+  on_init = nvlsp.on_init,
+  filetypes = { "ruby" },
 })
-
+vimLsp.enable "fastlane_ls"
 -- read :h vim.lsp.config for changing options of lsp servers
