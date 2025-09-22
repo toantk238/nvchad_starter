@@ -166,6 +166,7 @@ local M = {
     },
     config = true,
     lazy = true,
+    cmd = 'Neogit',
   },
   {
     "junegunn/fzf.vim",
@@ -623,6 +624,7 @@ local optionalPlugins = {
           key_bindings = {
             -- Accept the current completion.
             accept = "<Tab>",
+            accept_fallback = "<Tab>",
             -- Accept the next word.
             accept_word = false,
             -- Accept the next line.

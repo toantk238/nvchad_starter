@@ -1,10 +1,7 @@
-local util = require "lspconfig.util"
 local M = require "nvchad.configs.lspconfig"
 
-local lspconfig = require "lspconfig"
-local configs = require "lspconfig.configs"
+local vimLsp = vim.lsp
 
--- EXAMPLE
 local servers = {
   "clangd",
   -- "tsserver",
@@ -31,11 +28,12 @@ local nvlsp = require "nvchad.configs.lspconfig"
 
 -- lsps with default config
 for _, lsp in ipairs(servers) do
-  lspconfig[lsp].setup {
+  vimLsp.config(lsp, {
     on_attach = nvlsp.on_attach,
     on_init = nvlsp.on_init,
     capabilities = nvlsp.capabilities,
-  }
+  })
+  vimLsp.enable(lsp)
 end
 
 -- configuring single server, example: typescript
@@ -44,7 +42,7 @@ end
 --   on_init = nvlsp.on_init,
 --   capabilities = nvlsp.capabilities,
 -- }
-lspconfig.jsonls.setup {
+vimLsp.config("jsonls", {
   on_attach = nvlsp.on_attach,
   capabilities = nvlsp.capabilities,
   on_init = nvlsp.on_init,
@@ -95,7 +93,8 @@ lspconfig.jsonls.setup {
       },
     },
   },
-}
+})
+vimLsp.enable "jsonls"
 -- typescript
 require("typescript-tools").setup {
   dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
@@ -107,21 +106,53 @@ require("typescript-tools").setup {
   },
 }
 
-lspconfig.pyright.setup {
+local function organize_imports()
+  local params = {
+    command = "pyright.organizeimports",
+    arguments = { vim.uri_from_bufnr(0) },
+  }
+  local clients = vim.lsp.get_clients {
+    bufnr = vim.api.nvim_get_current_buf(),
+    name = "pyright",
+  }
+  for _, client in ipairs(clients) do
+    client.request("workspace/executeCommand", params, nil, 0)
+  end
+end -- Register the command
+
+vim.api.nvim_create_user_command("PyrightOrganizeImports", organize_imports, {
+  desc = "Organize imports using Pyright",
+})
+
+vim.lsp.config("pyright", {
   on_attach = nvlsp.on_attach,
   capabilities = nvlsp.capabilities,
   on_init = nvlsp.on_init,
   settings = {
+    pyright = {
+      disableTaggedHints = true,
+      disableOrganizeImports = false,
+    },
     python = {
       analysis = {
         typeCheckingMode = "off",
+        autoSearchPaths = true,
         useLibraryCodeForTypes = true,
+        diagnosticMode = "openFilesOnly",
       },
     },
   },
-}
+})
+vim.lsp.enable "pyright"
 
-lspconfig.solargraph.setup {
+-- lspconfig.pyright.setup {
+--   settings = {
+--       },
+--     },
+--   },
+-- }
+
+vimLsp.config("solargraph", {
   on_attach = nvlsp.on_attach,
   capabilities = nvlsp.capabilities,
   on_init = nvlsp.on_init,
@@ -131,14 +162,15 @@ lspconfig.solargraph.setup {
     },
   },
   cmd = { "bundle", "exec", "solargraph", "stdio" },
-}
+})
+vimLsp.enable "solargraph"
 
 -- lspconfig.bashls.setup({
 -- 	on_attach = on_attach,
 -- 	capabilities = capabilities,
 -- 	filetypes = { "sh" },
 -- })
-lspconfig.yamlls.setup {
+vimLsp.config("yamlls", {
   on_attach = nvlsp.on_attach,
   capabilities = nvlsp.capabilities,
   on_init = nvlsp.on_init,
@@ -151,14 +183,15 @@ lspconfig.yamlls.setup {
       validate = false,
     },
   },
-}
+})
+vimLsp.enable "yamlls"
 
-lspconfig.cucumber_language_server.setup {
+vimLsp.config("cucumber_language_server", {
   on_attach = nvlsp.on_attach,
   capabilities = nvlsp.capabilities,
   on_init = nvlsp.on_init,
   filetypes = { "cucumber", "feature" },
-  root_dir = lspconfig.util.find_git_ancestor,
+  root_dir = vimLsp.util.find_git_ancestor,
   settings = {
     cucumber = {
       features = { "./src/**/*.feature" },
@@ -168,26 +201,29 @@ lspconfig.cucumber_language_server.setup {
     },
   },
   cmd = { "cucumber-language-server", "--stdio" },
-}
+})
+vimLsp.enable "cucumber_language_server"
 
 local possible_lsp = {
   ["kotlin-language-server"] = function()
-    lspconfig.kotlin_language_server.setup {
+    vimLsp.config("kotlin_language_server", {
       on_init = nvlsp.on_init,
       on_attach = nvlsp.on_attach,
       capabilities = nvlsp.capabilities,
-      root_dir = lspconfig.util.root_pattern("settings.gradle", "settings.gradle.kts"),
-    }
+      root_dir = vimLsp.util.root_pattern("settings.gradle", "settings.gradle.kts"),
+    })
+    vimLsp.enable "kotlin_language_server"
   end,
   ["sourcekit-lsp"] = function()
-    lspconfig.sourcekit.setup {
+    vimLsp.config("sourcekit", {
       on_init = nvlsp.on_init,
       on_attach = nvlsp.on_attach,
       capabilities = nvlsp.capabilities,
-    }
+    })
+    vimLsp.enable "sourcekit"
   end,
   ["autotools-language-server"] = function()
-    lspconfig.autotools_ls.setup {
+    vimLsp.config("autotools_ls", {
       on_init = nvlsp.on_init,
       on_attach = nvlsp.on_attach,
       capabilities = vim.tbl_deep_extend("keep", nvlsp.capabilities, {
@@ -197,7 +233,8 @@ local possible_lsp = {
           },
         },
       }),
-    }
+    })
+    vimLsp.enable "autotools_ls"
   end,
 }
 
@@ -237,7 +274,7 @@ end
 --	})
 --end
 
-lspconfig.lua_ls.setup {
+vimLsp.config("lua_ls", {
   on_attach = M.on_attach,
   capabilities = M.capabilities,
   on_init = M.on_init,
@@ -268,7 +305,8 @@ lspconfig.lua_ls.setup {
       preloadFileSize = 10000,
     },
   },
-}
+})
+vimLsp.enable "lua_ls"
 
 local lsp_path = vim.fn.stdpath "config" .. "/lsp"
 local python_version_file = lsp_path .. "/.python-version"
@@ -286,21 +324,31 @@ local root_files = {
   ".git",
 }
 
-if not configs.fastlane_ls then
-  configs.fastlane_ls = {
-    default_config = {
-      cmd = { python_path, lsp_path .. "/fastlane_ls.py" },
-      filetypes = { "ruby" },
-      root_dir = function(fname)
-        return util.root_pattern(unpack(root_files))(fname)
-      end,
-    },
-  }
-end
+-- if not configs.fastlane_ls then
+--   configs.fastlane_ls = {
+--     default_config = {
+--       cmd = { python_path, lsp_path .. "/fastlane_ls.py" },
+--       filetypes = { "ruby" },
+--       root_dir = function(fname)
+--         return util.root_pattern(unpack(root_files))(fname)
+--       end,
+--     },
+--   }
+-- end
 
-lspconfig.fastlane_ls.setup {
-  on_attach = nvlsp.on_attach,
-  capabilities = nvlsp.capabilities,
-  on_init = nvlsp.on_init,
-}
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "ruby" },
+  callback = function()
+    vimLsp.config("fastlane_ls", {
+      name = "fastlane_ls",
+      cmd = { python_path, lsp_path .. "/fastlane_ls.py" },
+      root_dir = vim.fs.root(0, root_files),
+      on_attach = nvlsp.on_attach,
+      capabilities = nvlsp.capabilities,
+      on_init = nvlsp.on_init,
+    })
+    vimLsp.enable "fastlane_ls"
+  end,
+})
+
 -- read :h vim.lsp.config for changing options of lsp servers
