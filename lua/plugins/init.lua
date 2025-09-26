@@ -166,7 +166,7 @@ local M = {
     },
     config = true,
     lazy = true,
-    cmd = 'Neogit',
+    cmd = "Neogit",
   },
   {
     "junegunn/fzf.vim",
@@ -426,7 +426,7 @@ local optionalPlugins = {
   {
     "3rd/image.nvim",
     event = "VeryLazy",
-    tag = "v1.3.0",
+    tag = "v1.4.0",
     otps = {
       backend = "kitty",
       kitty_method = "normal",
@@ -639,6 +639,21 @@ local optionalPlugins = {
         },
       }
     end,
+  },
+  {
+    "folke/twilight.nvim",
+    cmd = "Twilight",
+    lazy = true,
+    opts = {
+      -- your configuration comes here
+      -- or leave it empty to use the default settings
+      -- refer to the configuration section below
+    },
+  },
+  {
+    "emmanueltouzery/decisive.nvim",
+    lazy = true,
+    filetype = "csv",
   },
 }
 
