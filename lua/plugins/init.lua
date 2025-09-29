@@ -96,8 +96,21 @@ local M = {
   {
     "karb94/neoscroll.nvim",
     keys = { "<C-d>", "<C-u>", "zz" },
-    config = function()
-      require("neoscroll").setup()
+    opts = {
+      mappings = { -- Keys to be mapped to their corresponding default scrolling animation
+        "<C-u>",
+        "<C-d>",
+        "<C-b>",
+        "<C-f>",
+        -- "<C-y>",
+        -- "<C-e>",
+        "zt",
+        "zz",
+        "zb",
+      },
+    },
+    config = function(_, opts)
+      require("neoscroll").setup(opts)
     end,
   },
   {
@@ -654,6 +667,15 @@ local optionalPlugins = {
     "emmanueltouzery/decisive.nvim",
     lazy = true,
     filetype = "csv",
+  },
+  {
+    "ThePrimeagen/harpoon",
+    branch = "harpoon2",
+    event = "VeryLazy",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function(_, _)
+      require "configs.harpoon"
+    end,
   },
 }
 
