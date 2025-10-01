@@ -619,9 +619,29 @@ local optionalPlugins = {
           -- Set to true if you never want completions to be shown automatically.
           manual = false,
           -- A mapping of filetype to true or false, to enable virtual text.
-          filetypes = {},
+          filetypes = {
+            python = true,
+            yaml = true,
+            markdown = true,
+            json = true,
+            html = true,
+            css = true,
+            scss = true,
+            javascript = true,
+            typescript = true,
+            javascriptreact = true,
+            typescriptreact = true,
+            vue = true,
+            bash = true,
+            lua = true,
+            rust = true,
+            go = true,
+            php = true,
+            c = true,
+            cpp = true,
+          },
           -- Whether to enable virtual text of not for filetypes not specifically listed above.
-          default_filetype_enabled = true,
+          default_filetype_enabled = false,
           -- How long to wait (in ms) before requesting completions after typing stops.
           idle_delay = 75,
           -- Priority of the virtual text. This usually ensures that the completions appear on top of
