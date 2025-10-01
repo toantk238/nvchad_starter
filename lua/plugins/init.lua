@@ -697,6 +697,14 @@ local optionalPlugins = {
       require "configs.harpoon"
     end,
   },
+  {
+    "nanotee/zoxide.vim",
+    lazy = true,
+    keys = {
+      { "<leader>zi", "<cmd>Zi<cr>", desc = "Zoxide" },
+    },
+    cmd = { "Zi", "Tzi", "Lzi" },
+  },
 }
 
 -- local avante = {
