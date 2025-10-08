@@ -400,6 +400,7 @@ local M = {
         filetypes = {
           ["*"] = true,
         },
+        copilot_node_command = vim.fn.expand "$HOME" .. "/.nvm/versions/node/v22.20.0/bin/node", -- Node.js version must be > 22     },
       }
     end,
     cond = function()
