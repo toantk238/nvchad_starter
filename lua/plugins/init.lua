@@ -710,6 +710,24 @@ local optionalPlugins = {
     },
     cmd = { "Zi", "Tzi", "Lzi" },
   },
+  {
+    "toantk238/tts.nvim",
+    lazy = true,
+    branch = "feature/python_path",
+    cmd = { "TTS", "TTSFile" },
+    keys = {
+      { "<leader>tt", "<cmd>TTS<cr>", desc = "Text to speech", mode = "v" },
+    },
+    dependencies = { "nvim-lua/plenary.nvim" },
+    opts = {
+      python_path = vim.fn.expand "$HOME/.pyenv/versions/myglobal/bin/python",
+      voice = "en-GB-SoniaNeural",
+      speed = 1.0,
+    },
+    config = function(_, opts)
+      require("tts-nvim").setup(opts)
+    end,
+  },
 }
 
 local avante = {
