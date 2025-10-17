@@ -15,7 +15,10 @@ local M = {
   {
     "neovim/nvim-lspconfig",
     dependencies = {
-      "pmizio/typescript-tools.nvim",
+      {
+        "Yuki-bun/typescript-tools.nvim",
+        branch = "refac-use_native_lsp_api",
+      },
     },
     config = function()
       require "configs.lspconfig"
