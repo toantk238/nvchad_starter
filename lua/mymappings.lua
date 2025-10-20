@@ -58,6 +58,7 @@ map("n", "<leader>fs", ":Telescope resume <CR>", { desc = "Telescope resume" })
 map("n", "<leader>gf", ":Telescope changed_files <cr>", { desc = "Open changed files" })
 
 map("n", "<leader>me", ":Bdelete other<CR>", { desc = "Close all but this buffer" })
+map("n", "<leader>tw", ":Twilight<CR>", { desc = "Toggle Twilight" })
 
 map("v", "<leader>gfr", ":Gen Review_Code<CR>", { desc = "Review code" })
 
