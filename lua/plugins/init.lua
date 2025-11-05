@@ -444,7 +444,7 @@ local optionalPlugins = {
   {
     "3rd/image.nvim",
     event = "VeryLazy",
-    tag = "v1.4.0",
+    branch = "master",
     otps = {
       backend = "kitty",
       kitty_method = "normal",
@@ -647,6 +647,7 @@ local optionalPlugins = {
             php = true,
             c = true,
             cpp = true,
+            cmake = true,
           },
           -- Whether to enable virtual text of not for filetypes not specifically listed above.
           default_filetype_enabled = false,
