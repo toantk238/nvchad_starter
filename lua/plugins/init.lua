@@ -500,6 +500,7 @@ local optionalPlugins = {
   {
     "Ramilito/kubectl.nvim",
     version = "2.*",
+    build = "make build",
     dependencies = "saghen/blink.download",
     opts = {
       logs = {
@@ -632,6 +633,7 @@ local optionalPlugins = {
             yaml = true,
             markdown = true,
             json = true,
+            jsonc = true,
             html = true,
             css = true,
             scss = true,
@@ -731,6 +733,20 @@ local optionalPlugins = {
     config = function(_, opts)
       require("tts-nvim").setup(opts)
     end,
+  },
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    lazy = true,
+    ft = { "markdown", "avante" },
+    keys = {
+      {
+        "<leader>rd",
+        function()
+          require("render-markdown").toggle()
+        end,
+        desc = "Toggle render markdown",
+      },
+    },
   },
 }
 
