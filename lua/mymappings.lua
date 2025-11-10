@@ -7,6 +7,7 @@ map("n", "<leader>cF", '<cmd>:let @+=expand("%:p")<CR>', { desc = "Copy full pat
 map("n", "<leader>ct", '<cmd>:let @+=expand("%:t")<CR>', { desc = "Copy filename" })
 map("n", "<leader>ch", '<cmd>:let @+=expand("%:p:h")<CR>', { desc = "Copy dir" })
 map("n", "<leader>yb", ":%y+<CR>", { desc = "Copy entire buffer" })
+map("n", "<leader>tc", ":tabclose<CR>", { desc = "Close tab" })
 
 -- ["jk"] = { "<ESC>", "escape insert mode" },
 
