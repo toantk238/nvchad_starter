@@ -438,6 +438,15 @@ local M = {
       return enable_avante
     end,
   },
+  {
+    "sindrets/diffview.nvim",
+    lazy = true,
+    event = "BufRead",
+    keys = {
+      { "<leader>gc", "<cmd>DiffviewClose<CR>", desc = "Close Diffview" },
+      { "<leader>gh", ":DiffviewFileHistory<CR>", mode = { "v", "n" }, desc = "Git selection history" },
+    },
+  },
 }
 
 local optionalPlugins = {
