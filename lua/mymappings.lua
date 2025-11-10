@@ -6,6 +6,7 @@ map("n", "<leader>cf", '<cmd>:let @+=expand("%")<CR>', { desc = "Copy relative p
 map("n", "<leader>cF", '<cmd>:let @+=expand("%:p")<CR>', { desc = "Copy full path" })
 map("n", "<leader>ct", '<cmd>:let @+=expand("%:t")<CR>', { desc = "Copy filename" })
 map("n", "<leader>ch", '<cmd>:let @+=expand("%:p:h")<CR>', { desc = "Copy dir" })
+map("n", "<leader>yb", ":%y+<CR>", { desc = "Copy entire buffer" })
 
 -- ["jk"] = { "<ESC>", "escape insert mode" },
 

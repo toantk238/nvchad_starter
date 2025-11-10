@@ -293,6 +293,7 @@ vimLsp.config("lua_ls", {
           "${3rd}/luv/library",
           vim.fn.stdpath "config" .. "/lua",
           vim.fn.stdpath "config" .. "/nvchad/lua",
+          vim.fn.expand "$HOME/.config/yazi/plugins/types.yazi",
         },
       },
       telemetry = {
