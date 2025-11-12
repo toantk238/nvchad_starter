@@ -1,3 +1,4 @@
+require "configs.mylsptweaks"
 local M = require "nvchad.configs.lspconfig"
 
 local vimLsp = vim.lsp
