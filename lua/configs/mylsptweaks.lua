@@ -1,3 +1,4 @@
+local map = vim.keymap.set
 -- vim.api.nvim_set_hl(0, "LspReferenceRead", { link = "Search" })
 -- vim.api.nvim_set_hl(0, "LspReferenceText", { link = "Search" })
 -- vim.api.nvim_set_hl(0, "LspReferenceWrite", { link = "Search" })
@@ -33,15 +34,25 @@
 --   callback = highlight_symbol,
 -- })
 
-vim.api.nvim_create_autocmd("LspAttach", {
-  desc = "Enable inlay hints",
-  callback = function(event)
-    local id = vim.tbl_get(event, "data", "client_id")
-    local client = id and vim.lsp.get_client_by_id(id)
-    if client == nil or not client.supports_method "textDocument/inlayHint" then
-      return
-    end
+-- vim.api.nvim_create_autocmd("LspAttach", {
+--   desc = "Enable inlay hints",
+--   callback = function(event)
+--     local id = vim.tbl_get(event, "data", "client_id")
+--     local client = id and vim.lsp.get_client_by_id(id)
+--     if client == nil or not client.supports_method "textDocument/inlayHint" then
+--       return
+--     end
+--
+--     vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
+--   end,
+-- })
 
-    vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
-  end,
-})
+local function toggle_inlay_hints()
+  local bufnr = vim.api.nvim_get_current_buf()
+  if vim.lsp.inlay_hint.is_enabled { bufnr = bufnr } then
+    vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
+  else
+    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+  end
+end
+map("n", "<leader>il", toggle_inlay_hints, { desc = "Toggle inlay hints" })
