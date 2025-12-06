@@ -355,7 +355,7 @@ local M = {
       }
     end,
     cond = function()
-      return enable_avante
+      return false
     end,
   },
   {
@@ -383,7 +383,7 @@ local M = {
       }
     end,
     cond = function()
-      return enable_avante
+      return false
     end,
   },
   {
@@ -607,6 +607,8 @@ local optionalPlugins = {
             c = true,
             cpp = true,
             cmake = true,
+            dockerfile = true,
+            sh = true,
           },
           -- Whether to enable virtual text of not for filetypes not specifically listed above.
           default_filetype_enabled = false,
@@ -705,6 +707,16 @@ local optionalPlugins = {
       },
     },
   },
+  {
+    "kylechui/nvim-surround",
+    version = "^3.0.0", -- Use for stability; omit to use `main` branch for the latest features
+    event = "VeryLazy",
+    config = function()
+      require("nvim-surround").setup {
+        -- Configuration here, or leave empty to use defaults
+      }
+    end,
+  },
 }
 
 local avante = {
@@ -732,10 +744,10 @@ local avante = {
     },
   },
   opts = {
-    provider = "copilot",
+    provider = "openai",
     providers = {
-      copilot = {
-        model = "claude-3.5-sonnet",
+      openai = {
+        model = "gpt-5-nano",
       },
     },
     -- provider = "copilot", -- use copilot as the main provider
@@ -769,7 +781,7 @@ local avante = {
     "hrsh7th/nvim-cmp", -- autocompletion for avante commands and mentions
     -- "ibhagwan/fzf-lua", -- for file_selector provider fzf
     "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-    "zbirenbaum/copilot.lua", -- for providers='copilot'
+    -- "zbirenbaum/copilot.lua", -- for providers='copilot'
     {
       -- support for image pasting
       "HakonHarnes/img-clip.nvim",
