@@ -13,8 +13,8 @@ local M = {
     "neovim/nvim-lspconfig",
     dependencies = {
       {
-        "Yuki-bun/typescript-tools.nvim",
-        branch = "refac-use_native_lsp_api",
+        "pmizio/typescript-tools.nvim",
+        branch = "master",
       },
     },
     config = function()
