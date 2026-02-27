@@ -36,6 +36,10 @@ local M = {
       "c",
       "cpp",
       "ruby",
+      "html",
+      "bash",
+      "zsh",
+      "sh"
     },
   },
 }
