@@ -8,6 +8,22 @@ require 'fileutils'
 require 'json'
 require 'fastlane'
 
+# Load all built-in actions (not loaded by default on `require 'fastlane'`)
+Fastlane::Actions.load_default_actions
+
+# Some actions call `Actions.git_branch` or similar helpers as default_value
+# expressions inside available_options, which raises NoMethodError outside a
+# live lane context.  Stub method_missing so those calls return nil instead
+# of aborting the entire options array.
+Fastlane::Actions.instance_eval do
+  def method_missing(name, *args)
+    nil
+  end
+  def respond_to_missing?(name, include_private = false)
+    true
+  end
+end
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -75,11 +91,26 @@ Fastlane::Actions.constants.each do |const_name|
         available_options.each do |opt|
           next unless opt.respond_to?(:key)
 
+          data_type = opt.data_type
+          type_str = case data_type
+                     when Class  then data_type.name
+                     when Symbol then data_type.to_s
+                     when nil    then ''
+                     else             data_type.to_s
+                     end
+
+          default_val = begin
+            dv = opt.default_value
+            dv.nil? ? nil : dv.inspect
+          rescue StandardError
+            nil
+          end
+
           options << {
             key: opt.key.to_s,
             description: opt.description.to_s,
-            type: opt.data_type.to_s,
-            default: opt.default_value.inspect,
+            type: type_str,
+            default: default_val,
             optional: opt.optional
           }
         end

@@ -15,6 +15,7 @@ env["FASTLANE_DISABLE_COLORS"] = "1"
 
 # Load static API data at module level
 _DATA_PATH = Path(__file__).parent / "data" / "fastlane_api.json"
+_INTROSPECT_SCRIPT = Path(__file__).parent / "scripts" / "introspect_plugins.rb"
 _API_DATA: dict = {}
 try:
     with open(_DATA_PATH) as f:
@@ -32,6 +33,11 @@ _ACTIONS_BY_NAME: dict = {a["name"]: a for a in _API_DATA.get("actions", [])}
 _MODULES: dict = _API_DATA.get("modules", {})
 _DSL_KEYWORDS: dict = {k["name"]: k for k in _API_DATA.get("dsl_keywords", [])}
 
+# Per-project plugin action cache.
+# Maps project_root (str) -> {action_name: action_dict}.
+# A value of None means the project is currently being loaded.
+_plugin_cache: dict[str, dict | None] = {}
+
 server = LanguageServer("fastlane-ls", "v2")
 
 
@@ -45,6 +51,46 @@ def is_fastlane_file(uri: str) -> bool:
     if "/fastlane/" in path:
         return True
     return False
+
+
+def _find_project_root(uri: str) -> str | None:
+    """Walk up from the file's directory to find a fastlane project root.
+
+    A project root is a directory that contains a Gemfile (so we can use
+    `bundle exec`) and either a fastlane/Pluginfile or fastlane/Fastfile.
+    Returns the project root path, or None if not found.
+    """
+    path = Path(uri.replace("file://", "")).parent
+    for directory in [path, *path.parents]:
+        has_gemfile = (directory / "Gemfile").exists()
+        has_pluginfile = (directory / "fastlane" / "Pluginfile").exists()
+        has_fastfile = (directory / "fastlane" / "Fastfile").exists()
+        if has_gemfile and (has_pluginfile or has_fastfile):
+            return str(directory)
+    return None
+
+
+def _build_action_hover(action: dict) -> str:
+    md = f"## `{action['name']}`\n\n"
+    if action.get("description"):
+        md += f"{action['description']}\n\n"
+    if action.get("return_value"):
+        md += f"**Returns:** {action['return_value']}\n\n"
+    opts = action.get("options", [])[:10]
+    if opts:
+        md += "**Options:**\n\n"
+        for opt in opts:
+            opt_line = f"- `{opt['key']}`"
+            if opt.get("type"):
+                opt_line += f" *({opt['type']})*"
+            if opt.get("description"):
+                opt_line += f": {opt['description']}"
+            if opt.get("default") not in (None, "nil", ""):
+                opt_line += f" — default: `{opt['default']}`"
+            if not opt.get("optional", True):
+                opt_line += " *(required)*"
+            md += opt_line + "\n"
+    return md
 
 
 def _word_range(line: str, pos_char: int) -> tuple[int, int]:
@@ -82,35 +128,53 @@ def _detect_module_method(line: str, pos_char: int) -> tuple[str, str] | None:
     return None
 
 
-async def _run_fastlane_action_cli(word: str) -> str | None:
-    """Run `fastlane action <word>` CLI and return extracted documentation."""
+async def _load_project_plugins(project_root: str) -> None:
+    """Run introspect_plugins.rb via bundle exec in project_root and cache results."""
+    logger.info(f"Loading fastlane plugins for project: {project_root}")
     try:
         result = await asyncio.to_thread(
             subprocess.run,
-            ["fastlane", "action", word],
+            ["ruby", str(_INTROSPECT_SCRIPT), project_root],
             capture_output=True,
             env=env,
-            timeout=10,
+            timeout=60,
         )
         if result.returncode != 0:
-            return None
-        stdout = result.stdout.decode("utf-8")
-        if "Couldn't find action" in stdout:
-            return None
-        extracted = []
-        started = False
-        for line in stdout.splitlines():
-            if "Loading documentation for" in line:
-                started = True
-            if "More information can be found" in line:
-                break
-            if started:
-                extracted.append(line)
-        content = "\n".join(extracted[1:])
-        return content if content else None
+            stderr = result.stderr.decode("utf-8", errors="replace")
+            logger.warning(f"introspect_plugins.rb failed ({project_root}): {stderr[:200]}")
+            _plugin_cache[project_root] = {}
+            return
+
+        stdout = result.stdout.decode("utf-8", errors="replace").strip()
+        if not stdout:
+            _plugin_cache[project_root] = {}
+            return
+
+        actions: list[dict] = json.loads(stdout)
+        cache = {a["name"]: a for a in actions if a.get("name")}
+        _plugin_cache[project_root] = cache
+        logger.info(f"Loaded {len(cache)} plugin action(s) for {project_root}")
     except Exception as e:
-        logger.error(f"Error running fastlane action CLI: {e}")
-        return None
+        logger.error(f"Error loading plugins for {project_root}: {e}")
+        _plugin_cache[project_root] = {}
+
+
+def _get_plugin_actions(project_root: str | None) -> dict:
+    """Return the cached plugin actions dict for project_root (may be empty)."""
+    if project_root is None:
+        return {}
+    return _plugin_cache.get(project_root) or {}
+
+
+@server.feature(types.TEXT_DOCUMENT_DID_OPEN)
+async def did_open(ls: LanguageServer, params: types.DidOpenTextDocumentParams) -> None:
+    uri = params.text_document.uri
+    if not is_fastlane_file(uri):
+        return
+    project_root = _find_project_root(uri)
+    if project_root and project_root not in _plugin_cache:
+        _plugin_cache[project_root] = None  # Mark as loading
+        asyncio.ensure_future(_load_project_plugins(project_root))
 
 
 @server.feature(
@@ -147,8 +211,12 @@ async def completion(
             )
         return types.CompletionList(is_incomplete=False, items=items)
 
-    # General completions: actions + DSL keywords + module names
-    for action in _API_DATA.get("actions", []):
+    # General completions: built-in actions + plugin actions + DSL keywords + modules
+    project_root = _find_project_root(uri)
+    plugin_actions = _get_plugin_actions(project_root)
+
+    all_actions = list(_API_DATA.get("actions", [])) + list(plugin_actions.values())
+    for action in all_actions:
         items.append(
             types.CompletionItem(
                 label=action["name"],
@@ -232,30 +300,29 @@ async def hover(ls: LanguageServer, params: types.HoverParams) -> types.Hover | 
                     range=hover_range,
                 )
 
-    # Priority 2: Static actions data
+    # Priority 2: Built-in actions
     if word in _ACTIONS_BY_NAME:
-        action = _ACTIONS_BY_NAME[word]
-        md = f"## `{action['name']}`\n\n"
-        if action.get("description"):
-            md += f"{action['description']}\n\n"
-        if action.get("return_value"):
-            md += f"**Returns:** {action['return_value']}\n\n"
-        opts = action.get("options", [])[:10]
-        if opts:
-            md += "**Options:**\n\n"
-            for opt in opts:
-                opt_line = f"- `{opt['key']}`"
-                if opt.get("description"):
-                    opt_line += f": {opt['description']}"
-                if not opt.get("optional", True):
-                    opt_line += " *(required)*"
-                md += opt_line + "\n"
         return types.Hover(
-            contents=types.MarkupContent(kind=types.MarkupKind.Markdown, value=md),
+            contents=types.MarkupContent(
+                kind=types.MarkupKind.Markdown,
+                value=_build_action_hover(_ACTIONS_BY_NAME[word]),
+            ),
             range=hover_range,
         )
 
-    # Priority 3: DSL keywords
+    # Priority 3: Plugin actions (project-specific)
+    project_root = _find_project_root(uri)
+    plugin_actions = _get_plugin_actions(project_root)
+    if word in plugin_actions:
+        return types.Hover(
+            contents=types.MarkupContent(
+                kind=types.MarkupKind.Markdown,
+                value=_build_action_hover(plugin_actions[word]),
+            ),
+            range=hover_range,
+        )
+
+    # Priority 4: DSL keywords
     if word in _DSL_KEYWORDS:
         kw = _DSL_KEYWORDS[word]
         md = f"## `{kw['name']}`\n\n{kw.get('description', '')}"
@@ -266,7 +333,7 @@ async def hover(ls: LanguageServer, params: types.HoverParams) -> types.Hover | 
             range=hover_range,
         )
 
-    # Priority 4: Fallback to fastlane action CLI
+    # Priority 5: Fallback to fastlane action CLI
     content = await _run_fastlane_action_cli(word)
     if content:
         return types.Hover(
@@ -277,6 +344,37 @@ async def hover(ls: LanguageServer, params: types.HoverParams) -> types.Hover | 
         )
 
     return None
+
+
+async def _run_fastlane_action_cli(word: str) -> str | None:
+    """Run `fastlane action <word>` CLI and return extracted documentation."""
+    try:
+        result = await asyncio.to_thread(
+            subprocess.run,
+            ["fastlane", "action", word],
+            capture_output=True,
+            env=env,
+            timeout=10,
+        )
+        if result.returncode != 0:
+            return None
+        stdout = result.stdout.decode("utf-8")
+        if "Couldn't find action" in stdout:
+            return None
+        extracted = []
+        started = False
+        for line in stdout.splitlines():
+            if "Loading documentation for" in line:
+                started = True
+            if "More information can be found" in line:
+                break
+            if started:
+                extracted.append(line)
+        content = "\n".join(extracted[1:])
+        return content if content else None
+    except Exception as e:
+        logger.error(f"Error running fastlane action CLI: {e}")
+        return None
 
 
 def main():

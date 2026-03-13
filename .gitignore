@@ -6,3 +6,4 @@ lazy-lock.json
 .idea/
 .python-version
 __pycache__
+*.log
