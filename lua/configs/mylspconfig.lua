@@ -329,6 +329,8 @@ local python_version = vim.trim(io.open(python_version_file, "r"):read "*a")
 local python_path = vim.fn.expand "$HOME/.pyenv/versions/" .. python_version .. "/bin/python"
 local root_files = {
   "Fastfile",
+  "Appfile",
+  "Matchfile",
   "Gemfile",
   ".git",
 }

@@ -1,0 +1,5 @@
+gen-fastlane-docs:
+  ruby ~/.config/nvim/lsp/scripts/generate_fastlane_data.rb
+yard-gems:
+  yard gems
+

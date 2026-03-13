@@ -18,7 +18,7 @@ local filename_table = {
 }
 
 local pattern_table = {
-  ["ruby"] = { ".*Fastfile" },
+  ["ruby"] = { ".*Fastfile", ".*Gemfile" },
   ["groovy"] = { "Jenkinsfile.*" },
   ["direnv"] = { ".*%.envrc%.*" },
   ["dockerfile"] = { "Dockerfile.*" },
