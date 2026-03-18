@@ -166,11 +166,17 @@ vimLsp.config("solargraph", {
 })
 vimLsp.enable "solargraph"
 
--- lspconfig.bashls.setup({
--- 	on_attach = on_attach,
--- 	capabilities = capabilities,
--- 	filetypes = { "sh" },
--- })
+vimLsp.config("bashls", {
+  on_attach = function(client, bufnr)
+    nvlsp.on_attach(client, bufnr)
+    vim.diagnostic.enable(false, { bufnr = bufnr, ns_id = vim.lsp.diagnostic.get_namespace(client.id) })
+  end,
+  capabilities = nvlsp.capabilities,
+  on_init = nvlsp.on_init,
+  filetypes = { "sh", "bash", "zsh" },
+})
+vimLsp.enable "bashls"
+
 vimLsp.config("yamlls", {
   on_attach = nvlsp.on_attach,
   capabilities = nvlsp.capabilities,
@@ -323,6 +329,8 @@ local python_version = vim.trim(io.open(python_version_file, "r"):read "*a")
 local python_path = vim.fn.expand "$HOME/.pyenv/versions/" .. python_version .. "/bin/python"
 local root_files = {
   "Fastfile",
+  "Appfile",
+  "Matchfile",
   "Gemfile",
   ".git",
 }

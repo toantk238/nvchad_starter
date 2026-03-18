@@ -1,0 +1,11 @@
+source 'https://rubygems.org'
+
+gem 'abbrev'
+gem 'csv'
+gem 'fastlane'
+gem 'logger'
+gem 'mutex_m'
+gem 'rexml', '>= 3.4.4'
+gem 'ostruct'
+gem 'nkf'
+gem 'solargraph', group: :development

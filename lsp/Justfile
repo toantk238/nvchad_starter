@@ -1,0 +1,10 @@
+gen-fastlane-docs:
+  ruby ~/.config/nvim/lsp/scripts/generate_fastlane_data.rb
+
+# Test plugin introspection for a project (the LSP does this automatically on file open)
+test-fastlane-plugins project=".":
+  ruby ~/.config/nvim/lsp/scripts/introspect_plugins.rb {{project}}
+
+yard-gems:
+  yard gems
+
