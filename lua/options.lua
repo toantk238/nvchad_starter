@@ -6,7 +6,7 @@ require "nvchad.options"
 -- o.cursorlineopt ='both' -- to enable cursorline!
 -- Verify if lemonade is installed
 
-if vim.fn.executable "lemonade" then
+if vim.fn.executable "lemonade" == 1 then
   vim.g.clipboard = {
     name = "lemonade",
     copy = {
@@ -19,6 +19,10 @@ if vim.fn.executable "lemonade" then
     },
     cache_enabled = false,
   }
+end
+
+if vim.fn.executable "win32yank.exe" == 1 then
+  vim.g.clipboard = "win32yank"
 end
 
 vim.g.wordmotion_prefix = "<Leader>"
