@@ -23,6 +23,7 @@ local options = {
     markdown = { "deno_fmt" },
     groovy = { "groovy_lint" },
     tex = { "latexindent" },
+    just = { "just_fmt" },
   },
 }
 
@@ -54,6 +55,11 @@ local M = {
   },
   ["autopep8"] = {
     prepend_args = { "--max-line-length", "140" },
+  },
+  ["just_fmt"] = {
+    command = "just",
+    args = { "--fmt", "--unstable", "-f", "$FILENAME" },
+    stdin = false,
   },
   ["deno_fmt"] = {
     args = function(self, ctx)
