@@ -658,6 +658,7 @@ local optionalPlugins = {
             cmake = true,
             dockerfile = true,
             sh = true,
+            just= true
           },
           -- Whether to enable virtual text of not for filetypes not specifically listed above.
           default_filetype_enabled = false,
