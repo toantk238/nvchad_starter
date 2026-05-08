@@ -26,6 +26,7 @@ local M = {
       "python",
       "javascript",
       "typescript",
+      "typescriptreact",
       "rust",
       "go",
       "swift",

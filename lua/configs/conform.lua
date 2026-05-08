@@ -25,6 +25,7 @@ local options = {
     tex = { "latexindent" },
     powershell = { "format_ps1" },
     ps1 = { "format_ps1" },
+    just = { "just_fmt" },
   },
 }
 
@@ -56,6 +57,11 @@ local M = {
   },
   ["autopep8"] = {
     prepend_args = { "--max-line-length", "140" },
+  },
+  ["just_fmt"] = {
+    command = "just",
+    args = { "--fmt", "--unstable", "-f", "$FILENAME" },
+    stdin = false,
   },
   ["deno_fmt"] = {
     args = function(self, ctx)
