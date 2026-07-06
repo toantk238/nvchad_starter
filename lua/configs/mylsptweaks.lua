@@ -56,3 +56,14 @@ local function toggle_inlay_hints()
   end
 end
 map("n", "<leader>il", toggle_inlay_hints, { desc = "Toggle inlay hints" })
+
+vim.api.nvim_create_user_command("LspRestart", function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local clients = vim.lsp.get_clients { bufnr = bufnr }
+  for _, client in ipairs(clients) do
+    client:stop()
+  end
+  vim.defer_fn(function()
+    vim.api.nvim_exec_autocmds("FileType", { buffer = bufnr })
+  end, 500)
+end, { desc = "Restart LSP clients for current buffer" })

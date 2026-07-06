@@ -177,21 +177,21 @@ vimLsp.config("bashls", {
 })
 vimLsp.enable "bashls"
 
-vimLsp.config("yamlls", {
-  on_attach = nvlsp.on_attach,
-  capabilities = nvlsp.capabilities,
-  on_init = nvlsp.on_init,
-  settings = {
-    yaml = {
-      schemas = {
-        ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.31.3-standalone-strict/all.json"] = "/*.k8s.yaml",
-        ["https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/rabbitmq.com/rabbitmqcluster_v1beta1.json"] = "/*.k8s.rabbit.yaml",
-      },
-      validate = false,
-    },
-  },
-})
-vimLsp.enable "yamlls"
+-- vimLsp.config("yamlls", {
+--   on_attach = nvlsp.on_attach,
+--   capabilities = nvlsp.capabilities,
+--   on_init = nvlsp.on_init,
+--   settings = {
+--     yaml = {
+--       schemas = {
+--         ["https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.31.3-standalone-strict/all.json"] = "/*.k8s.yaml",
+--         ["https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/rabbitmq.com/rabbitmqcluster_v1beta1.json"] = "/*.k8s.rabbit.yaml",
+--       },
+--       validate = false,
+--     },
+--   },
+-- })
+-- vimLsp.enable "yamlls"
 
 vimLsp.config("cucumber_language_server", {
   on_attach = nvlsp.on_attach,
