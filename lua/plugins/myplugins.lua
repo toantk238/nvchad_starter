@@ -213,7 +213,7 @@ local M = {
     branch = "feature/more_languages",
     -- Optional dependencies
     dependencies = {
-      "nvim-treesitter/nvim-treesitter",
+      "romus204/tree-sitter-manager.nvim",
       "nvim-tree/nvim-web-devicons",
     },
     config = function()
