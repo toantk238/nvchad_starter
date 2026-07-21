@@ -1,5 +1,7 @@
 local optionalPlugins = require "plugins.myplugins"
 
+local coding_file_types = require "configs.codingfts"
+
 local M = {
   {
     "stevearc/conform.nvim",
@@ -21,27 +23,30 @@ local M = {
       require "configs.lspconfig"
       require "configs.mylspconfig"
     end,
-    ft = {
-      "lua",
-      "python",
-      "javascript",
-      "typescript",
-      "typescriptreact",
-      "rust",
-      "go",
-      "swift",
-      "yaml",
-      "yml",
-      "objc",
-      "objcpp",
-      "c",
-      "cpp",
-      "ruby",
-      "html",
-      "bash",
-      "zsh",
-      "sh"
+    ft = coding_file_types,
+  },
+  {
+    "nvimtools/none-ls.nvim",
+    config = function()
+      local null_ls = require "null-ls"
+      null_ls.setup {
+        sources = {
+          null_ls.builtins.formatting.stylua,
+          null_ls.builtins.diagnostics.ktlint,
+          null_ls.builtins.formatting.ktlint.with {
+            extra_args = { "--editorconfig=" .. vim.fn.stdpath "config" .. "/config/kotlin/.editorconfig" },
+            timeout = 10000,
+          },
+          null_ls.builtins.formatting.just,
+        },
+      }
+    end,
+    dependencies = {
+      {
+        "nvim-lua/plenary.nvim",
+      },
     },
+    ft = coding_file_types,
   },
 }
 
