@@ -25,6 +25,7 @@ local pattern_table = {
   ["yaml"] = { ".*%.yml%..*" },
   ["python"] = { "gittool" },
   ["swift"] = { ".*%.swiftinterface" },
+  ["jproperties"] = { ".*pro" },
 }
 
 local function table_map_by_value(data)

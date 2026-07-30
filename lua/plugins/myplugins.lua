@@ -542,6 +542,7 @@ local optionalPlugins = {
     end,
   },
   {
+    cond = false,
     "greggh/claude-code.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim", -- Required for git operations
