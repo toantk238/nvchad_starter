@@ -71,7 +71,7 @@ map("n", "]c", function()
     return "]c"
   end
   vim.schedule(function()
-    require("gitsigns").next_hunk()
+    require("gitsigns").nav_hunk "prev"
   end)
   return "<Ignore>"
 end, {
@@ -85,7 +85,7 @@ map("n", "[c", function()
     return "[c"
   end
   vim.schedule(function()
-    require("gitsigns").prev_hunk()
+    require("gitsigns").nav_hunk "next"
   end)
   return "<Ignore>"
 end, {
@@ -95,3 +95,4 @@ end, {
 })
 
 map("n", "<leader>gb", "<CMD>:G blame<CR>", { desc = "Blame Line" })
+map({"n", "v"}, "<leader>ca", "<CMD>lua vim.lsp.buf.code_action()<CR>", { desc = "Lsp code action" })

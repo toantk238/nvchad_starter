@@ -38,6 +38,7 @@ local M = {
             timeout = 10000,
           },
           null_ls.builtins.formatting.just,
+          null_ls.builtins.code_actions.refactoring,
         },
       }
     end,
