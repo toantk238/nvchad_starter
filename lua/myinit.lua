@@ -26,6 +26,7 @@ local pattern_table = {
   ["python"] = { "gittool" },
   ["swift"] = { ".*%.swiftinterface" },
   ["jproperties"] = { ".*pro" },
+  ["nginx"] = { ".*nginx.conf.*" }
 }
 
 local function table_map_by_value(data)
