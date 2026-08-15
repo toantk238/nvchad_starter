@@ -26,7 +26,8 @@ local pattern_table = {
   ["python"] = { "gittool" },
   ["swift"] = { ".*%.swiftinterface" },
   ["jproperties"] = { ".*pro" },
-  ["nginx"] = { ".*nginx.conf.*" }
+  ["nginx"] = { ".*nginx.conf.*" },
+  ["helm"] = { ".*/templates/.*%.tpl", ".*/templates/.*%.ya?ml", "helmfile.*%.ya?ml" },
 }
 
 local function table_map_by_value(data)
@@ -65,6 +66,7 @@ vim.filetype.add {
     appiumsession = "json",
     storyboard = "xml",
     podspec = "ruby",
+    gotmpl = "gotmpl",
   },
 }
 
