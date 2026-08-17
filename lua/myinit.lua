@@ -28,6 +28,7 @@ local pattern_table = {
   ["jproperties"] = { ".*pro" },
   ["nginx"] = { ".*nginx.conf.*" },
   ["helm"] = { ".*/templates/.*%.tpl", ".*/templates/.*%.ya?ml", "helmfile.*%.ya?ml" },
+  ["river"] = { ".*alloy" },
 }
 
 local function table_map_by_value(data)
