@@ -23,7 +23,8 @@ local servers = {
   "cmake",
   -- make file
   "texlab",
-  "tilt_ls"
+  "tilt_ls",
+  "helm_ls"
 }
 
 local nvlsp = require "nvchad.configs.lspconfig"
