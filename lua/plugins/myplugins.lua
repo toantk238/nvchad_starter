@@ -736,6 +736,7 @@ local avante = {
     },
   },
   opts = {
+    instructions_file = "avante.md",
     provider = "openai",
     providers = {
       openai = {
@@ -762,7 +763,8 @@ local avante = {
     },
     -- add any opts here
   },
-  build = "make",
+  build = vim.fn.has "win32" ~= 0 and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
+    or "make",
   -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
   dependencies = {
     "stevearc/dressing.nvim",
