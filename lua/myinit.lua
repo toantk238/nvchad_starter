@@ -25,6 +25,10 @@ local pattern_table = {
   ["yaml"] = { ".*%.yml%..*" },
   ["python"] = { "gittool" },
   ["swift"] = { ".*%.swiftinterface" },
+  ["jproperties"] = { ".*pro" },
+  ["nginx"] = { ".*nginx.conf.*" },
+  ["helm"] = { ".*/templates/.*%.tpl", ".*/templates/.*%.ya?ml", "helmfile.*%.ya?ml" },
+  ["river"] = { ".*alloy" },
 }
 
 local function table_map_by_value(data)
@@ -63,6 +67,7 @@ vim.filetype.add {
     appiumsession = "json",
     storyboard = "xml",
     podspec = "ruby",
+    gotmpl = "gotmpl",
   },
 }
 
@@ -99,3 +104,14 @@ require("base46").load_all_highlights()
 --
 
 vim.treesitter.language.register("starlark", { "tiltfile" })
+
+-- Skip treesitter (parse + highlight) for files longer than 2000 lines
+local max_treesitter_lines = 2000
+local ts_start = vim.treesitter.start
+vim.treesitter.start = function(bufnr, ...)
+  local buf = bufnr or vim.api.nvim_get_current_buf()
+  if vim.api.nvim_buf_line_count(buf) > max_treesitter_lines then
+    return
+  end
+  return ts_start(bufnr, ...)
+end

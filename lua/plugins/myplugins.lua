@@ -542,6 +542,7 @@ local optionalPlugins = {
     end,
   },
   {
+    cond = false,
     "greggh/claude-code.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim", -- Required for git operations
@@ -701,6 +702,13 @@ local optionalPlugins = {
     end,
     lazy = false,
   },
+  {
+    "ThePrimeagen/refactoring.nvim",
+    dependencies = {
+      "lewis6991/async.nvim",
+    },
+    lazy = false,
+  },
 }
 
 local avante = {
@@ -728,6 +736,7 @@ local avante = {
     },
   },
   opts = {
+    instructions_file = "avante.md",
     provider = "openai",
     providers = {
       openai = {
@@ -754,7 +763,8 @@ local avante = {
     },
     -- add any opts here
   },
-  build = "make",
+  build = vim.fn.has "win32" ~= 0 and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
+    or "make",
   -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
   dependencies = {
     "stevearc/dressing.nvim",

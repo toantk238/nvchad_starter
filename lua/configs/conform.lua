@@ -14,7 +14,7 @@ local options = {
     bash = { "shfmt" },
     zsh = { "shfmt" },
     python = { "autopep8" },
-    kotlin = { "ktlint" },
+    -- kotlin = { "ktlint" },
     java = { "google-java-format" },
     xml = { "xmlformat" },
     ruby = { "rubocop" },
@@ -45,10 +45,10 @@ local M = {
   ["yamlfmt"] = {
     prepend_args = { "-conf", yamlfmt_config_file },
   },
-  ["ktlint"] = {
-    prepend_args = { "--editorconfig=" .. ktlint_config_file },
-    exit_codes = { 0, 1 },
-  },
+  -- ["ktlint"] = {
+  --   prepend_args = { "--editorconfig=" .. ktlint_config_file },
+  --   exit_codes = { 0, 1 },
+  -- },
   ["prettier"] = {
     -- prepend_args = { "--print-width", "120" },
   },
@@ -58,11 +58,11 @@ local M = {
   ["autopep8"] = {
     prepend_args = { "--max-line-length", "140" },
   },
-  ["just_fmt"] = {
-    command = "just",
-    args = { "--fmt", "--unstable", "-f", "$FILENAME" },
-    stdin = false,
-  },
+  -- ["just_fmt"] = {
+  --   command = "just",
+  --   args = { "--fmt", "--unstable", "-f", "$FILENAME" },
+  --   stdin = false,
+  -- },
   ["deno_fmt"] = {
     args = function(self, ctx)
       return {
