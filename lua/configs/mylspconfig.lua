@@ -24,7 +24,9 @@ local servers = {
   -- make file
   "texlab",
   "tilt_ls",
-  "helm_ls"
+  "helm_ls",
+  -- justfile (just-lsp, installed via mason)
+  "just",
 }
 
 local nvlsp = require "nvchad.configs.lspconfig"

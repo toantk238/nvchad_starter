@@ -72,7 +72,8 @@ M.mason = {
     "texlab",
     "latexindent",
     "gopls",
-    "helm-ls"
+    "helm-ls",
+    "just-lsp"
   },
 }
 -- M.nvdash = { load_on_startup = true }
