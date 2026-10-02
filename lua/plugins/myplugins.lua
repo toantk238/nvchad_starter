@@ -709,6 +709,11 @@ local optionalPlugins = {
     },
     lazy = false,
   },
+  {
+    "davidmh/mdx.nvim",
+    -- dependencies = { "nvim-treesitter/nvim-treesitter" },
+    event = "BufEnter *.mdx",
+  },
 }
 
 local avante = {

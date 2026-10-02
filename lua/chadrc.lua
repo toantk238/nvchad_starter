@@ -37,7 +37,7 @@ M.mason = {
     "shellcheck",
     "bash-language-server",
 
-    -- "clangd",
+    "clangd",
     -- "clang-format",
     -- xml
     "lemminx",
@@ -73,7 +73,8 @@ M.mason = {
     "latexindent",
     "gopls",
     "helm-ls",
-    "just-lsp"
+    "just-lsp",
+    "mdx-analyzer",
   },
 }
 -- M.nvdash = { load_on_startup = true }
