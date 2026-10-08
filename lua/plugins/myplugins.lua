@@ -672,6 +672,7 @@ local optionalPlugins = {
         "<leader>rd",
         function()
           require("render-markdown").toggle()
+          require("my.mermaid_inline").sync()
         end,
         desc = "Toggle render markdown",
       },
@@ -713,6 +714,18 @@ local optionalPlugins = {
     "davidmh/mdx.nvim",
     -- dependencies = { "nvim-treesitter/nvim-treesitter" },
     event = "BufEnter *.mdx",
+  },
+  {
+    "kevalin/mermaid.nvim",
+    -- dependencies = { "nvim-treesitter/nvim-treesitter" },
+    config = function()
+      require("mermaid").setup()
+      require("my.mermaid_inline").setup()
+
+      -- Install the Tree-sitter parser:
+      -- :TSInstall mermaid
+    end,
+    lazy = false
   },
 }
 
