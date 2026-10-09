@@ -9,8 +9,53 @@ local enabled = {} -- bufnr -> true (on) | false (turned off by the user)
 
 M.opts = {
   auto = true, -- turn on automatically for markdown buffers that contain a mermaid block
-  scale = 3, -- mmdc --scale, keeps text sharp; the image is still shown at its 1x size
+  scale = 3, -- mmdc --scale, keeps text sharp when the image is stretched to the window
+  font_size = 20, -- px at 1x (mermaid's default is 16)
+  max_zoom = 1.5, -- cap on stretching a diagram to the window width, relative to its 1x size
+  -- mermaid config for a dark/light Normal background; the dark one is high contrast (mermaid's own dark theme is grey on grey)
+  config = {
+    dark = {
+      theme = "base",
+      themeVariables = {
+        darkMode = true,
+        background = "#1e1e2e",
+        primaryColor = "#313244",
+        primaryTextColor = "#ffffff",
+        primaryBorderColor = "#89b4fa",
+        secondaryColor = "#45475a",
+        tertiaryColor = "#1e1e2e",
+        lineColor = "#cdd6f4",
+        textColor = "#ffffff",
+        nodeTextColor = "#ffffff",
+        titleColor = "#f9e2af",
+        clusterBkg = "#181825",
+        clusterBorder = "#6c7086",
+        edgeLabelBackground = "#11111b",
+      },
+    },
+    light = { theme = "default" },
+  },
 }
+
+-- vim.json.encode with sorted keys, so the output (and the cache hash built from it) is stable across sessions
+local function encode_sorted(v)
+  if type(v) ~= "table" then return vim.json.encode(v) end
+  local keys = vim.tbl_keys(v)
+  table.sort(keys)
+  local parts = {}
+  for _, k in ipairs(keys) do
+    table.insert(parts, vim.json.encode(tostring(k)) .. ":" .. encode_sorted(v[k]))
+  end
+  return "{" .. table.concat(parts, ",") .. "}"
+end
+
+-- "dark" | "light" from the Normal highlight's background; vim.o.background isn't always kept in sync by colorschemes
+local function background()
+  local bg = vim.api.nvim_get_hl(0, { name = "Normal", link = false }).bg
+  if not bg then return vim.o.background end
+  local r, g, b = bit.rshift(bg, 16), bit.band(bit.rshift(bg, 8), 0xff), bit.band(bg, 0xff)
+  return (0.299 * r + 0.587 * g + 0.114 * b) < 128 and "dark" or "light"
+end
 
 local function find_blocks(buf)
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
@@ -75,13 +120,17 @@ local function show(buf, png, block)
     namespace = ns,
   })
   if not img then return end
-  -- show at natural (1x) size, even if taller than the window; only cap the width to the window
+  -- stretch to the window's text width, but at most max_zoom x the natural (1x) size, so a wide
+  -- (landscape) window doesn't blow the diagram up to several screens tall. image.nvim derives
+  -- the height from the aspect ratio; tall diagrams run past the window and scroll like text.
   img.ignore_global_max_size = true
+  local width = vim.api.nvim_win_get_width(win) - vim.fn.getwininfo(win)[1].textoff
   local term = require("image/utils").term.get_size()
   if term then
-    local text_width = vim.api.nvim_win_get_width(win) - vim.fn.getwininfo(win)[1].textoff
-    img.geometry.width = math.min(math.ceil(img.image_width / M.opts.scale / term.cell_width), text_width)
+    local natural = img.image_width / M.opts.scale / term.cell_width
+    width = math.min(width, math.ceil(natural * M.opts.max_zoom))
   end
+  img.geometry.width = width
   img:render { x = 0, y = anchor }
 end
 
@@ -96,9 +145,15 @@ function M.render(buf)
   vim.fn.mkdir(cache_dir, "p")
   clear(buf)
 
-  local theme = vim.o.background == "dark" and "dark" or "default"
+  local config = vim.deepcopy(M.opts.config[background()] or {})
+  config.themeVariables = config.themeVariables or {}
+  config.themeVariables.fontSize = M.opts.font_size .. "px"
+  local config_json = encode_sorted(config)
+  local config_file = ("%s/%s.json"):format(cache_dir, vim.fn.sha256(config_json):sub(1, 16))
+  if not vim.uv.fs_stat(config_file) then vim.fn.writefile({ config_json }, config_file) end
+
   for _, block in ipairs(find_blocks(buf)) do
-    local hash = vim.fn.sha256(theme .. M.opts.scale .. block.src):sub(1, 16)
+    local hash = vim.fn.sha256(config_json .. M.opts.scale .. block.src):sub(1, 16)
     local png = ("%s/%s.png"):format(cache_dir, hash)
     if vim.uv.fs_stat(png) then
       show(buf, png, block)
@@ -106,7 +161,7 @@ function M.render(buf)
       local input = ("%s/%s.mmd"):format(cache_dir, hash)
       vim.fn.writefile(vim.split(block.src, "\n"), input)
       vim.system(
-        { "mmdc", "-i", input, "-o", png, "-t", theme, "-b", "transparent", "-s", tostring(M.opts.scale) },
+        { "mmdc", "-i", input, "-o", png, "-c", config_file, "-b", "transparent", "-s", tostring(M.opts.scale) },
         { text = true },
         vim.schedule_wrap(function(res)
           os.remove(input)
@@ -165,6 +220,21 @@ function M.setup(opts)
     pattern = { "*.md", "*.markdown" },
     callback = function(ev)
       if enabled[ev.buf] then M.render(ev.buf) end
+    end,
+  })
+  vim.api.nvim_create_autocmd({ "WinResized", "ColorScheme" }, {
+    group = group,
+    callback = function(ev)
+      -- images are sized to the window and themed after the colorscheme; PNGs are cached per theme
+      local wins = ev.event == "WinResized" and vim.v.event.windows or vim.api.nvim_list_wins()
+      local seen = {}
+      for _, win in ipairs(wins) do
+        local buf = vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win)
+        if buf and enabled[buf] and not seen[buf] then
+          seen[buf] = true
+          M.render(buf)
+        end
+      end
     end,
   })
   vim.api.nvim_create_autocmd("BufWinEnter", {
