@@ -54,6 +54,8 @@ vimLsp.config("jsonls", {
   on_init = nvlsp.on_init,
   settings = {
     json = {
+      -- the server turns validation off unless this is set explicitly
+      validate = { enable = true },
       -- Schemas https://www.schemastore.org
       schemas = {
         {
