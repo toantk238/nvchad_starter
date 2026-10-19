@@ -31,6 +31,8 @@ M.opts = {
         clusterBkg = "#181825",
         clusterBorder = "#6c7086",
         edgeLabelBackground = "#11111b",
+        doneTaskBkgColor = "#585b70", -- gantt; the derived one is light grey under white text
+        doneTaskBorderColor = "#a6adc8",
       },
     },
     light = { theme = "default" },
@@ -49,12 +51,45 @@ local function encode_sorted(v)
   return "{" .. table.concat(parts, ",") .. "}"
 end
 
+local function is_dark(r, g, b) return (0.299 * r + 0.587 * g + 0.114 * b) < 128 end
+
 -- "dark" | "light" from the Normal highlight's background; vim.o.background isn't always kept in sync by colorschemes
 local function background()
   local bg = vim.api.nvim_get_hl(0, { name = "Normal", link = false }).bg
   if not bg then return vim.o.background end
-  local r, g, b = bit.rshift(bg, 16), bit.band(bit.rshift(bg, 8), 0xff), bit.band(bg, 0xff)
-  return (0.299 * r + 0.587 * g + 0.114 * b) < 128 and "dark" or "light"
+  return is_dark(bit.rshift(bg, 16), bit.band(bit.rshift(bg, 8), 0xff), bit.band(bg, 0xff)) and "dark" or "light"
+end
+
+-- r, g, b of a "#rgb" / "#rrggbb" / "rgb(r, g, b)" color; nil for anything else (named colors, ...)
+local function parse_color(s)
+  local hex = s:match "^#(%x+)$"
+  if hex and #hex == 3 then hex = hex:gsub(".", "%0%0") end
+  if hex and #hex == 6 then
+    return tonumber(hex:sub(1, 2), 16), tonumber(hex:sub(3, 4), 16), tonumber(hex:sub(5, 6), 16)
+  end
+  local r, g, b = s:match "^rgba?%(%s*(%d+)%s*,%s*(%d+)%s*,%s*(%d+)"
+  if r then return tonumber(r), tonumber(g), tonumber(b) end
+end
+
+-- Colors set in the diagram itself ignore the theme's text color, so e.g. a light `style ... fill:`
+-- would get white text in dark mode. Give such fills a readable text color, and fade sequence
+-- `rect`/`box` backgrounds that clash with the theme (their text is the theme's).
+local function adapt_colors(src, mode)
+  local lines = vim.split(src, "\n")
+  for i, line in ipairs(lines) do
+    local kw = line:match "^%s*(%a+)%s"
+    if (kw == "style" or kw == "classDef") and not line:match "[%s,;]color%s*:" then
+      local fill = line:match "fill%s*:%s*(rgba?%b())" or line:match "fill%s*:%s*(#%x+)"
+      local r, g, b = parse_color(fill or "")
+      if r then lines[i] = line:gsub("[%s;]*$", "") .. (",color:%s"):format(is_dark(r, g, b) and "#fff" or "#000") end
+    elseif kw == "rect" or kw == "box" then
+      local pre, r, g, b, post = line:match "^(%s*%a+%s+)rgba?%(%s*(%d+)%s*,%s*(%d+)%s*,%s*(%d+)[^)]*%)(.*)$"
+      if r and is_dark(tonumber(r), tonumber(g), tonumber(b)) ~= (mode == "dark") then
+        lines[i] = ("%srgba(%s, %s, %s, 0.2)%s"):format(pre, r, g, b, post)
+      end
+    end
+  end
+  return table.concat(lines, "\n")
 end
 
 local function find_blocks(buf)
@@ -93,8 +128,9 @@ local function show(buf, png, block)
   local line_count = vim.api.nvim_buf_line_count(buf)
   -- The image hangs off the line after the block. It must not be a concealed line
   -- (render-markdown conceals the closing fence), or its virtual lines can't be scrolled through.
-  local anchor = block.end_row + 1 < line_count and block.end_row + 1 or block.end_row
-  local hidden_end = anchor - 1
+  -- At the end of the buffer it hangs off the opening fence instead (render-markdown shows the language there).
+  local anchor = block.end_row + 1 < line_count and block.end_row + 1 or block.start_row
+  local hidden_end = block.end_row
   if hidden_end > block.start_row then
     local last = vim.api.nvim_buf_get_lines(buf, hidden_end, hidden_end + 1, false)[1]
     vim.api.nvim_buf_set_extmark(buf, extmark_ns, block.start_row + 1, 0, {
@@ -129,6 +165,13 @@ local function show(buf, png, block)
   if term then
     local natural = img.image_width / M.opts.scale / term.cell_width
     width = math.min(width, math.ceil(natural * M.opts.max_zoom))
+    -- Virtual lines below the last visible line can't be scrolled past: the most that shows is the
+    -- window minus that line (scrolled to the top), so fit the image in there.
+    if anchor == block.start_row or anchor == line_count - 1 then
+      local max_rows = vim.api.nvim_win_get_height(win) - 1
+      local aspect = img.image_width / img.image_height
+      width = math.min(width, math.floor(max_rows * term.cell_height * aspect / term.cell_width))
+    end
   end
   img.geometry.width = width
   img:render { x = 0, y = anchor }
@@ -145,7 +188,8 @@ function M.render(buf)
   vim.fn.mkdir(cache_dir, "p")
   clear(buf)
 
-  local config = vim.deepcopy(M.opts.config[background()] or {})
+  local mode = background()
+  local config = vim.deepcopy(M.opts.config[mode] or {})
   config.themeVariables = config.themeVariables or {}
   config.themeVariables.fontSize = M.opts.font_size .. "px"
   local config_json = encode_sorted(config)
@@ -153,13 +197,14 @@ function M.render(buf)
   if not vim.uv.fs_stat(config_file) then vim.fn.writefile({ config_json }, config_file) end
 
   for _, block in ipairs(find_blocks(buf)) do
-    local hash = vim.fn.sha256(config_json .. M.opts.scale .. block.src):sub(1, 16)
+    local src = adapt_colors(block.src, mode)
+    local hash = vim.fn.sha256(config_json .. M.opts.scale .. src):sub(1, 16)
     local png = ("%s/%s.png"):format(cache_dir, hash)
     if vim.uv.fs_stat(png) then
       show(buf, png, block)
     else
       local input = ("%s/%s.mmd"):format(cache_dir, hash)
-      vim.fn.writefile(vim.split(block.src, "\n"), input)
+      vim.fn.writefile(vim.split(src, "\n"), input)
       vim.system(
         { "mmdc", "-i", input, "-o", png, "-c", config_file, "-b", "transparent", "-s", tostring(M.opts.scale) },
         { text = true },
