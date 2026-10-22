@@ -346,6 +346,7 @@ local M = {
     config = function()
       require "configs.coc"
     end,
+    cond = false,
   },
   -- {
   --   "code-biscuits/nvim-biscuits",
@@ -725,7 +726,7 @@ local optionalPlugins = {
       -- Install the Tree-sitter parser:
       -- :TSInstall mermaid
     end,
-    lazy = false
+    lazy = false,
   },
 }
 

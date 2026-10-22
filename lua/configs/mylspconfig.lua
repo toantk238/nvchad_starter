@@ -27,7 +27,8 @@ local servers = {
   "helm_ls",
   -- justfile (just-lsp, installed via mason)
   "just",
-  "mdx_analyzer"
+  "mdx_analyzer",
+  "terraformls",
 }
 
 local nvlsp = require "nvchad.configs.lspconfig"

@@ -21,7 +21,8 @@ local M = {
   "sh",
   "kotlin",
   "just",
-  "json"
+  "json",
+  "terraform"
 }
 
 return M
