@@ -251,6 +251,18 @@ local possible_lsp = {
     })
     vimLsp.enable "autotools_ls"
   end,
+  -- cargo install merman-lsp --locked --no-default-features --features all-diagrams,stdio
+  ["merman-lsp"] = function()
+    vimLsp.config("merman_lsp", {
+      cmd = { "merman-lsp" },
+      filetypes = { "mermaid" },
+      root_markers = { ".git" },
+      on_init = nvlsp.on_init,
+      on_attach = nvlsp.on_attach,
+      capabilities = nvlsp.capabilities,
+    })
+    vimLsp.enable "merman_lsp"
+  end,
 }
 
 for command, lsp_setup in pairs(possible_lsp) do

@@ -22,7 +22,8 @@ local M = {
   "kotlin",
   "just",
   "json",
-  "terraform"
+  "terraform",
+  "mermaid",
 }
 
 return M
