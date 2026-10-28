@@ -11,7 +11,13 @@ M.opts = {
   auto = true, -- turn on automatically for markdown buffers that contain a mermaid block
   scale = 3, -- mmdc --scale, keeps text sharp when the image is stretched to the window
   font_size = 20, -- px at 1x (mermaid's default is 16)
-  max_zoom = 1.5, -- cap on stretching a diagram to the window width, relative to its 1x size
+  -- cap on stretching a diagram (and its text) to fill the window, relative to its 1x size;
+  -- up to `scale` the PNG has the pixels for it, past that it gets blurry
+  max_zoom = 3,
+  -- also lay diagrams out the other way (TD <-> LR) and show whichever suits the window: the one
+  -- drawn clearly larger, else the one shaped like the window (wide window -> left to right).
+  -- Only the rendered image changes, not the buffer.
+  auto_direction = true,
   -- mermaid config for a dark/light Normal background; the dark one is high contrast (mermaid's own dark theme is grey on grey)
   config = {
     dark = {
@@ -37,6 +43,29 @@ M.opts = {
     },
     light = { theme = "default" },
   },
+}
+
+-- mermaid config sections that take useMaxWidth
+local diagram_kinds = {
+  "flowchart",
+  "sequence",
+  "class",
+  "state",
+  "er",
+  "gantt",
+  "journey",
+  "timeline",
+  "mindmap",
+  "pie",
+  "requirement",
+  "gitGraph",
+  "quadrantChart",
+  "xyChart",
+  "sankey",
+  "block",
+  "architecture",
+  "packet",
+  "c4",
 }
 
 -- vim.json.encode with sorted keys, so the output (and the cache hash built from it) is stable across sessions
@@ -90,6 +119,106 @@ local function adapt_colors(src, mode)
     end
   end
   return table.concat(lines, "\n")
+end
+
+local flips = { TD = "LR", TB = "LR", BT = "RL", LR = "TD", RL = "BT" }
+
+-- src laid out in the other direction, or nil for diagram types without one (sequence, gantt, ...)
+local function flip_direction(src)
+  local lines = vim.split(src, "\n")
+  local h, in_frontmatter = nil, false
+  for i, line in ipairs(lines) do
+    if line:match "^%s*%-%-%-%s*$" then
+      in_frontmatter = not in_frontmatter
+    elseif not in_frontmatter and not line:match "^%s*$" and not line:match "^%s*%%%%" then
+      h = i
+      break
+    end
+  end
+  if not h then return end
+  local header = lines[h]
+  local kw, rest = header:match "^%s*(%a+)(.*)$"
+  if kw == "flowchart" or kw == "graph" then
+    local pre, dir, post = rest:match "^(%s+)(%u%u)(.*)$"
+    if dir and flips[dir] then
+      lines[h] = header:sub(1, #header - #rest) .. pre .. flips[dir] .. post
+    elseif rest:match "^%s*;?%s*$" then
+      lines[h] = header:gsub("%s*;?%s*$", "") .. " LR" -- no direction means TD
+    else
+      return
+    end
+  elseif (kw == "stateDiagram" or kw == "classDiagram" or kw == "erDiagram") and rest:match "^%-?v?2?%s*$" then
+    -- these take a `direction` statement; only a top-level one right after the header is swapped
+    local j = h + 1
+    while lines[j] and (lines[j]:match "^%s*$" or lines[j]:match "^%s*%%%%") do
+      j = j + 1
+    end
+    local pre, dir, post = (lines[j] or ""):match "^(%s*direction%s+)(%u%u)(.*)$"
+    if dir and flips[dir] then
+      lines[j] = pre .. flips[dir] .. post
+    elseif dir then
+      return
+    else
+      table.insert(lines, h + 1, "  direction LR") -- no direction means TB
+    end
+  else
+    return
+  end
+  return table.concat(lines, "\n")
+end
+
+-- width, height in px of a PNG file, from its IHDR chunk
+local function png_size(path)
+  local f = io.open(path, "rb")
+  if not f then return end
+  local head = f:read(24)
+  f:close()
+  if not head or #head < 24 or head:sub(13, 16) ~= "IHDR" then return end
+  local function u32(i)
+    local a, b, c, d = head:byte(i, i + 3)
+    return ((a * 256 + b) * 256 + c) * 256 + d
+  end
+  return u32(17), u32(21)
+end
+
+-- Space in win a diagram can take: the text width, and the window height minus the anchor line,
+-- which is the most that shows at once (scrolled to the top). Past the end of the buffer the
+-- virtual lines can't be scrolled through at all, and elsewhere a taller image could never be
+-- seen in one piece. Also returns the terminal's cell size in px, or nil if unknown.
+local function space(win)
+  local cols = vim.api.nvim_win_get_width(win) - vim.fn.getwininfo(win)[1].textoff
+  local rows = vim.api.nvim_win_get_height(win) - 1
+  return cols, rows, require("image/utils").term.get_size()
+end
+
+-- Columns to draw a w x h px diagram at in win, and the zoom that is relative to its natural (1x) size:
+-- as large as fits the space, up to max_zoom. image.nvim derives the height from the aspect ratio
+-- (rounding the rows up, which the floor below leaves room for).
+local function fit(win, w, h)
+  local cols, rows, term = space(win)
+  if not term then return cols, 1 end
+  local natural = w / M.opts.scale / term.cell_width
+  local width = math.min(
+    cols,
+    math.ceil(natural * M.opts.max_zoom),
+    math.floor(rows * term.cell_height * (w / h) / term.cell_width)
+  )
+  return width, width / natural
+end
+
+-- The better of two layouts (PNG paths) of a diagram for win: the one drawn clearly larger, so a
+-- near tie doesn't swap layouts on every small resize, else the one shaped like the window.
+local function pick(win, a, b)
+  local aw, ah = png_size(a)
+  local bw, bh = png_size(b)
+  if not (aw and bw) then return aw and a or b end
+  local _, za = fit(win, aw, ah)
+  local _, zb = fit(win, bw, bh)
+  if za > zb * 1.2 then return a end
+  if zb > za * 1.2 then return b end
+  local cols, rows, term = space(win)
+  local wide = term and cols * term.cell_width >= rows * term.cell_height or cols >= rows * 2
+  return (aw >= ah) == wide and a or b
 end
 
 local function find_blocks(buf)
@@ -156,25 +285,27 @@ local function show(buf, png, block)
     namespace = ns,
   })
   if not img then return end
-  -- stretch to the window's text width, but at most max_zoom x the natural (1x) size, so a wide
-  -- (landscape) window doesn't blow the diagram up to several screens tall. image.nvim derives
-  -- the height from the aspect ratio; tall diagrams run past the window and scroll like text.
   img.ignore_global_max_size = true
-  local width = vim.api.nvim_win_get_width(win) - vim.fn.getwininfo(win)[1].textoff
-  local term = require("image/utils").term.get_size()
-  if term then
-    local natural = img.image_width / M.opts.scale / term.cell_width
-    width = math.min(width, math.ceil(natural * M.opts.max_zoom))
-    -- Virtual lines below the last visible line can't be scrolled past: the most that shows is the
-    -- window minus that line (scrolled to the top), so fit the image in there.
-    if anchor == block.start_row or anchor == line_count - 1 then
-      local max_rows = vim.api.nvim_win_get_height(win) - 1
-      local aspect = img.image_width / img.image_height
-      width = math.min(width, math.floor(max_rows * term.cell_height * aspect / term.cell_width))
-    end
-  end
-  img.geometry.width = width
+  img.geometry.width = fit(win, img.image_width, img.image_height)
   img:render { x = 0, y = anchor }
+end
+
+-- Render src to a PNG with mmdc (cached by content), then on_done(png) or on_done(nil, err).
+local function to_png(src, config_json, config_file, on_done)
+  local hash = vim.fn.sha256(config_json .. M.opts.scale .. src):sub(1, 16)
+  local png = ("%s/%s.png"):format(cache_dir, hash)
+  if vim.uv.fs_stat(png) then return on_done(png) end
+  local input = ("%s/%s.mmd"):format(cache_dir, hash)
+  vim.fn.writefile(vim.split(src, "\n"), input)
+  vim.system(
+    { "mmdc", "-i", input, "-o", png, "-c", config_file, "-b", "transparent", "-s", tostring(M.opts.scale) },
+    { text = true },
+    vim.schedule_wrap(function(res)
+      os.remove(input)
+      if res.code ~= 0 then return on_done(nil, (res.stderr or ""):match "Error[^\n]*" or res.stderr) end
+      on_done(png)
+    end)
+  )
 end
 
 function M.render(buf)
@@ -192,32 +323,34 @@ function M.render(buf)
   local config = vim.deepcopy(M.opts.config[mode] or {})
   config.themeVariables = config.themeVariables or {}
   config.themeVariables.fontSize = M.opts.font_size .. "px"
+  -- With useMaxWidth (the default) mermaid scales each diagram to mmdc's 800px page width, so a
+  -- wide diagram is squeezed (tiny text) and a narrow one stretched. Off, the PNG is the diagram's
+  -- real 1x size, which fit() and pick() size against.
+  for _, kind in ipairs(diagram_kinds) do
+    config[kind] = vim.tbl_extend("keep", config[kind] or {}, { useMaxWidth = false })
+  end
+  -- gantt has its own (11px) font size instead of the theme's
+  config.gantt = vim.tbl_extend("keep", config.gantt, { fontSize = M.opts.font_size, sectionFontSize = M.opts.font_size })
   local config_json = encode_sorted(config)
   local config_file = ("%s/%s.json"):format(cache_dir, vim.fn.sha256(config_json):sub(1, 16))
   if not vim.uv.fs_stat(config_file) then vim.fn.writefile({ config_json }, config_file) end
 
   for _, block in ipairs(find_blocks(buf)) do
     local src = adapt_colors(block.src, mode)
-    local hash = vim.fn.sha256(config_json .. M.opts.scale .. src):sub(1, 16)
-    local png = ("%s/%s.png"):format(cache_dir, hash)
-    if vim.uv.fs_stat(png) then
-      show(buf, png, block)
-    else
-      local input = ("%s/%s.mmd"):format(cache_dir, hash)
-      vim.fn.writefile(vim.split(src, "\n"), input)
-      vim.system(
-        { "mmdc", "-i", input, "-o", png, "-c", config_file, "-b", "transparent", "-s", tostring(M.opts.scale) },
-        { text = true },
-        vim.schedule_wrap(function(res)
-          os.remove(input)
-          if res.code ~= 0 then
-            local err = (res.stderr or ""):match "Error[^\n]*" or res.stderr
-            return vim.notify("mermaid_inline: line " .. (block.start_row + 1) .. ": " .. err, vim.log.levels.ERROR)
-          end
-          if enabled[buf] and vim.api.nvim_buf_is_valid(buf) then show(buf, png, block) end
-        end)
-      )
+    local function done(png)
+      if enabled[buf] and vim.api.nvim_buf_is_valid(buf) then show(buf, png, block) end
     end
+    to_png(src, config_json, config_file, function(png, err)
+      if not png then
+        return vim.notify("mermaid_inline: line " .. (block.start_row + 1) .. ": " .. err, vim.log.levels.ERROR)
+      end
+      local flipped = M.opts.auto_direction and flip_direction(src)
+      if not flipped then return done(png) end
+      to_png(flipped, config_json, config_file, function(alt)
+        local win = vim.fn.bufwinid(buf)
+        done(alt and win ~= -1 and pick(win, png, alt) or png)
+      end)
+    end)
   end
 end
 
