@@ -161,19 +161,6 @@ vim.lsp.enable "pyright"
 --   },
 -- }
 
-vimLsp.config("solargraph", {
-  on_attach = nvlsp.on_attach,
-  capabilities = nvlsp.capabilities,
-  on_init = nvlsp.on_init,
-  settings = {
-    solargraph = {
-      diagnostics = false,
-    },
-  },
-  cmd = { "bundle", "exec", "solargraph", "stdio" },
-})
-vimLsp.enable "solargraph"
-
 vimLsp.config("bashls", {
   on_attach = function(client, bufnr)
     nvlsp.on_attach(client, bufnr)
@@ -345,6 +332,7 @@ if vim.fn.filereadable(python_path) == 0 then
   return
 end
 
+-- Ruby things
 local root_files = {
   "Fastfile",
   "Appfile",
@@ -353,6 +341,21 @@ local root_files = {
   ".git",
 }
 
+vimLsp.config("solargraph", {
+  on_attach = nvlsp.on_attach,
+  capabilities = nvlsp.capabilities,
+  on_init = nvlsp.on_init,
+  root_dir = vim.fs.root(0, root_files),
+  settings = {
+    solargraph = {
+      diagnostics = false,
+    },
+  },
+  filetypes = { "ruby" },
+  -- cmd = { "bundle", "exec", "solargraph", "stdio" },
+  cmd = { "solargraph", "stdio" },
+})
+vimLsp.enable "solargraph"
 vimLsp.config("fastlane_ls", {
   name = "fastlane_ls",
   cmd = { python_path, lsp_path .. "/fastlane_ls.py" },
