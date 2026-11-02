@@ -4,7 +4,7 @@ harpoon.setup(opts)
 
 vim.keymap.set("n", "<leader>a", function()
   harpoon:list():add()
-end)
+end, { desc = "Add file to harpoon" })
 -- vim.keymap.set("n", "<C-e>", function()
 --   harpoon.ui:toggle_quick_menu(harpoon:list())
 -- end)
@@ -50,6 +50,7 @@ local function toggle_telescope(harpoon_files)
     :find()
 end
 
-vim.keymap.set("n", "<C-e>", function()
+-- not <C-e>: keep Vim's scroll-down-one-line
+vim.keymap.set("n", "<leader>H", function()
   toggle_telescope(harpoon:list())
 end, { desc = "Open harpoon window" })

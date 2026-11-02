@@ -24,7 +24,11 @@ local servers = {
   -- make file
   "texlab",
   "tilt_ls",
-  "helm_ls"
+  "helm_ls",
+  -- justfile (just-lsp, installed via mason)
+  "just",
+  "mdx_analyzer",
+  "terraformls",
 }
 
 local nvlsp = require "nvchad.configs.lspconfig"
@@ -51,6 +55,8 @@ vimLsp.config("jsonls", {
   on_init = nvlsp.on_init,
   settings = {
     json = {
+      -- the server turns validation off unless this is set explicitly
+      validate = { enable = true },
       -- Schemas https://www.schemastore.org
       schemas = {
         {
@@ -155,19 +161,6 @@ vim.lsp.enable "pyright"
 --   },
 -- }
 
-vimLsp.config("solargraph", {
-  on_attach = nvlsp.on_attach,
-  capabilities = nvlsp.capabilities,
-  on_init = nvlsp.on_init,
-  settings = {
-    solargraph = {
-      diagnostics = false,
-    },
-  },
-  cmd = { "bundle", "exec", "solargraph", "stdio" },
-})
-vimLsp.enable "solargraph"
-
 vimLsp.config("bashls", {
   on_attach = function(client, bufnr)
     nvlsp.on_attach(client, bufnr)
@@ -245,6 +238,18 @@ local possible_lsp = {
     })
     vimLsp.enable "autotools_ls"
   end,
+  -- cargo install merman-lsp --locked --no-default-features --features all-diagrams,stdio
+  ["merman-lsp"] = function()
+    vimLsp.config("merman_lsp", {
+      cmd = { "merman-lsp" },
+      filetypes = { "mermaid" },
+      root_markers = { ".git" },
+      on_init = nvlsp.on_init,
+      on_attach = nvlsp.on_attach,
+      capabilities = nvlsp.capabilities,
+    })
+    vimLsp.enable "merman_lsp"
+  end,
 }
 
 for command, lsp_setup in pairs(possible_lsp) do
@@ -318,15 +323,7 @@ vimLsp.config("lua_ls", {
 })
 vimLsp.enable "lua_ls"
 
-local lsp_path = vim.fn.stdpath "config" .. "/lsp"
-local python_path = lsp_path .. "/.venv/bin/python"
-
--- Verify the python-version file exists before proceeding
-if vim.fn.filereadable(python_path) == 0 then
-  vim.notify("Python for fastlane_lsp is not setup", vim.log.levels.WARN)
-  return
-end
-
+-- Ruby things
 local root_files = {
   "Fastfile",
   "Appfile",
@@ -335,14 +332,38 @@ local root_files = {
   ".git",
 }
 
-vimLsp.config("fastlane_ls", {
-  name = "fastlane_ls",
-  cmd = { python_path, lsp_path .. "/fastlane_ls.py" },
-  root_dir = vim.fs.root(0, root_files),
+vimLsp.config("solargraph", {
   on_attach = nvlsp.on_attach,
   capabilities = nvlsp.capabilities,
   on_init = nvlsp.on_init,
+  root_dir = vim.fs.root(0, root_files),
+  settings = {
+    solargraph = {
+      diagnostics = false,
+    },
+  },
   filetypes = { "ruby" },
+  -- cmd = { "bundle", "exec", "solargraph", "stdio" },
+  cmd = { "solargraph", "stdio" },
 })
-vimLsp.enable "fastlane_ls"
+vimLsp.enable "solargraph"
+
+local lsp_path = vim.fn.stdpath "config" .. "/lsp"
+local python_path = lsp_path .. "/.venv/bin/python"
+
+-- Verify the python-version file exists before setting up fastlane_ls
+if vim.fn.filereadable(python_path) == 0 then
+  vim.notify("Python for fastlane_lsp is not setup", vim.log.levels.WARN)
+else
+  vimLsp.config("fastlane_ls", {
+    name = "fastlane_ls",
+    cmd = { python_path, lsp_path .. "/fastlane_ls.py" },
+    root_dir = vim.fs.root(0, root_files),
+    on_attach = nvlsp.on_attach,
+    capabilities = nvlsp.capabilities,
+    on_init = nvlsp.on_init,
+    filetypes = { "ruby" },
+  })
+  vimLsp.enable "fastlane_ls"
+end
 -- read :h vim.lsp.config for changing options of lsp servers

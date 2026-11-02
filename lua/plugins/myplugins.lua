@@ -346,6 +346,7 @@ local M = {
     config = function()
       require "configs.coc"
     end,
+    cond = false,
   },
   -- {
   --   "code-biscuits/nvim-biscuits",
@@ -672,6 +673,7 @@ local optionalPlugins = {
         "<leader>rd",
         function()
           require("render-markdown").toggle()
+          require("my.mermaid_inline").sync()
         end,
         desc = "Toggle render markdown",
       },
@@ -707,6 +709,23 @@ local optionalPlugins = {
     dependencies = {
       "lewis6991/async.nvim",
     },
+    lazy = false,
+  },
+  {
+    "davidmh/mdx.nvim",
+    -- dependencies = { "nvim-treesitter/nvim-treesitter" },
+    event = "BufEnter *.mdx",
+  },
+  {
+    "kevalin/mermaid.nvim",
+    -- dependencies = { "nvim-treesitter/nvim-treesitter" },
+    config = function()
+      require("mermaid").setup()
+      require("my.mermaid_inline").setup()
+
+      -- Install the Tree-sitter parser:
+      -- :TSInstall mermaid
+    end,
     lazy = false,
   },
 }
@@ -770,6 +789,7 @@ local avante = {
     "stevearc/dressing.nvim",
     "nvim-lua/plenary.nvim",
     "MunifTanjim/nui.nvim",
+    { "ColinKennedy/mega.cmdparse", dependencies = { "ColinKennedy/mega.logging" } },
     --- The below dependencies are optional,
     "nvim-telescope/telescope.nvim", -- for file_selector provider telescope
     "hrsh7th/nvim-cmp", -- autocompletion for avante commands and mentions
