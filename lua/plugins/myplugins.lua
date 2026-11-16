@@ -440,9 +440,26 @@ local M = {
     "sindrets/diffview.nvim",
     lazy = true,
     event = "BufRead",
+    cmd = { "DiffviewOpen", "DiffviewFileHistory" },
     keys = {
       { "<leader>gc", "<cmd>DiffviewClose<CR>", desc = "Close Diffview" },
-      { "<leader>gh", ":DiffviewFileHistory<CR>", mode = { "v", "n" }, desc = "Git selection history" },
+      {
+        "<leader>gh",
+        function()
+          -- In nvim-tree, `%` is the tree buffer itself: use the node under the cursor instead.
+          if vim.bo.filetype == "NvimTree" then
+            local node = require("nvim-tree.api").tree.get_node_under_cursor()
+            if node and node.absolute_path then
+              vim.cmd("DiffviewFileHistory " .. vim.fn.fnameescape(node.absolute_path))
+            end
+            return
+          end
+          vim.cmd "DiffviewFileHistory %"
+        end,
+        mode = "n",
+        desc = "Git file history",
+      },
+      { "<leader>gh", ":DiffviewFileHistory<CR>", mode = "v", desc = "Git selection history" },
     },
   },
 }
